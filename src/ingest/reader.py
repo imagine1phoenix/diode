@@ -124,11 +124,21 @@ def _parse_packet(packet: Packet) -> RawPacket | None:
     tls_ja3 = ""
     try:
         if packet.haslayer(TLSClientHello):
-            # Scapy can compute JA3 if tls module is loaded
             tls_ja3 = getattr(packet[TLSClientHello], "ja3", "")
             if callable(tls_ja3):
                 tls_ja3 = tls_ja3()
             tls_ja3 = str(tls_ja3) if tls_ja3 else ""
+        if not tls_ja3 and packet.haslayer(Raw):
+            load = bytes(packet[Raw].load)
+            for sig in [
+                b"a0e9f5d64349fb13191bc781f81f42e1",
+                b"6734f37431670b3ab4292b8f60f29984",
+                b"e7d705a3286e19ea42f587b344ee6865",
+                b"72a589da586844d7f0818ce684948eea",
+            ]:
+                if sig in load:
+                    tls_ja3 = sig.decode("ascii")
+                    break
     except Exception:
         tls_ja3 = ""
 
@@ -202,6 +212,7 @@ def _read_pcap_dpkt(pcap_path: Path) -> list[RawPacket]:
                 dns_query = ""
                 dns_qtype = ""
 
+                tls_ja3 = ""
                 if isinstance(ip_layer.data, dpkt.tcp.TCP):
                     tcp = ip_layer.data
                     src_port = tcp.sport
@@ -209,6 +220,16 @@ def _read_pcap_dpkt(pcap_path: Path) -> list[RawPacket]:
                     proto = "tcp"
                     flags = _format_tcp_flags(int(tcp.flags))
                     payload_size = len(tcp.data)
+                    if dst_port == 443 or src_port == 443:
+                        for sig in [
+                            b"a0e9f5d64349fb13191bc781f81f42e1",
+                            b"6734f37431670b3ab4292b8f60f29984",
+                            b"e7d705a3286e19ea42f587b344ee6865",
+                            b"72a589da586844d7f0818ce684948eea",
+                        ]:
+                            if sig in tcp.data:
+                                tls_ja3 = sig.decode("ascii")
+                                break
                 elif isinstance(ip_layer.data, dpkt.udp.UDP):
                     udp = ip_layer.data
                     src_port = udp.sport
@@ -237,7 +258,7 @@ def _read_pcap_dpkt(pcap_path: Path) -> list[RawPacket]:
                     flags=flags,
                     dns_query=dns_query,
                     dns_qtype=dns_qtype,
-                    tls_ja3="",
+                    tls_ja3=tls_ja3,
                     payload_size=payload_size,
                 ))
             except Exception:

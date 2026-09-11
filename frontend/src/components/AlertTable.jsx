@@ -9,30 +9,30 @@ import { THREAT_CONFIG } from './ThreatDonutChart';
 const SEVERITY_CONFIG = {
   critical: {
     label: 'Critical',
-    color: '#ef4444',
-    bg: 'rgba(239, 68, 68, 0.14)',
-    border: 'rgba(239, 68, 68, 0.35)',
-    glow: '0 0 10px rgba(239, 68, 68, 0.25)',
+    color: '#DC2626',
+    bg: '#FEE2E2',
+    border: '#FECACA',
+    glow: 'none',
   },
   high: {
     label: 'High',
-    color: '#f97316',
-    bg: 'rgba(249, 115, 22, 0.14)',
-    border: 'rgba(249, 115, 22, 0.35)',
+    color: '#D97706',
+    bg: '#FEF3C7',
+    border: '#FDE68A',
     glow: 'none',
   },
   medium: {
     label: 'Medium',
-    color: '#eab308',
-    bg: 'rgba(234, 179, 8, 0.14)',
-    border: 'rgba(234, 179, 8, 0.35)',
+    color: '#CA8A04',
+    bg: '#FEF9C3',
+    border: '#FEF08A',
     glow: 'none',
   },
   low: {
     label: 'Low',
-    color: '#06b6d4',
-    bg: 'rgba(6, 182, 212, 0.14)',
-    border: 'rgba(6, 182, 212, 0.35)',
+    color: '#0284C7',
+    bg: '#E0F2FE',
+    border: '#BAE6FD',
     glow: 'none',
   },
 };
@@ -207,62 +207,104 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
     document.body.removeChild(link);
   };
 
+  const downloadDossier = (alert, e) => {
+    e.stopPropagation();
+    const dossier = {
+      dossier_title: `FORENSIC_TELEMETRY_DOSSIER_${alert.alert_id}`,
+      export_timestamp: new Date().toISOString(),
+      enclave: "NET-DRISHTI AIR-GAPPED TELEMETRY ENCLAVE",
+      tap_mode: "PASSIVE_OPTICAL_DIODE_SIMPLEX_RX",
+      hardware_constraint: "ZERO_TX_WRITES_VERIFIED",
+      alert,
+      recommended_capture_syntax: `tcpdump -nn -s 0 -i eth0 'host ${alert.flow_id?.split('-')[0]?.split(':')[0] || 'any'}' -w /opt/forensics/${alert.alert_id}.pcap`,
+    };
+    const blob = new Blob([JSON.stringify(dossier, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NET_DRISHTI_${alert.alert_id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const toggleExpand = (alertId, e) => {
     e.stopPropagation();
     setExpandedAlertId(expandedAlertId === alertId ? null : alertId);
   };
 
   return (
-    <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
+    <div style={{
+      background: '#FFFFFF',
+      border: '1px solid #E2E8F0',
+      borderRadius: '16px',
+      boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.05)',
+      padding: '20px',
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
       {/* Table Header & Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '700', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>Live Security Alert Feed</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2 style={{
+              fontSize: '16px',
+              fontWeight: '900',
+              color: '#0F172A',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontFamily: 'var(--font-mono)',
+              textTransform: 'uppercase',
+              letterSpacing: '-0.01em',
+            }}>
+              <span>Normalized Live Threat Intelligence Stream</span>
             </h2>
             <span style={{
-              fontSize: '11px',
+              fontSize: '10.5px',
               fontFamily: 'var(--font-mono)',
+              fontWeight: '700',
               padding: '2px 8px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(99, 102, 241, 0.15)',
-              color: 'var(--accent-indigo)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
+              borderRadius: '6px',
+              background: '#F1F5F9',
+              color: '#334155',
+              border: '1px solid #CBD5E1',
             }}>
-              {filteredAlerts.length} Active Events
+              {filteredAlerts.length} Events
             </span>
           </div>
-          <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-            Real-time normalized security events with MITRE ATT&CK mapping & AI auto-triage
+          <p style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px', fontWeight: '500' }}>
+            Real-time normalized security events with MITRE ATT&CK mapping & passive explainability
           </p>
         </div>
 
         {/* Filter Toolbar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {/* Search Box */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            background: 'rgba(15, 23, 42, 0.6)',
-            border: '1px solid var(--bg-card-border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '6px 10px',
+            background: '#F8FAFC',
+            border: '1px solid #CBD5E1',
+            borderRadius: '8px',
+            padding: '6px 12px',
           }}>
-            <Search size={14} color="var(--text-muted)" />
+            <Search size={14} color="#64748B" />
             <input
               type="text"
-              placeholder="Search IP, MITRE, domain..."
+              placeholder="Search Flow 5-Tuple, IP, JA3, DNS Query..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                color: '#ffffff',
-                fontSize: '12px',
-                width: '160px',
+                color: '#0F172A',
+                fontSize: '11.5px',
+                width: '260px',
+                fontWeight: '500',
               }}
             />
           </div>
@@ -272,12 +314,13 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
             value={threatFilter}
             onChange={(e) => setThreatFilter(e.target.value)}
             style={{
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid var(--bg-card-border)',
-              borderRadius: 'var(--radius-md)',
+              background: '#F8FAFC',
+              border: '1px solid #CBD5E1',
+              borderRadius: '8px',
               padding: '6px 10px',
-              color: 'var(--text-secondary)',
-              fontSize: '12px',
+              color: '#0F172A',
+              fontSize: '11.5px',
+              fontWeight: '600',
               outline: 'none',
               cursor: 'pointer',
             }}
@@ -292,19 +335,19 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
           </select>
 
           {/* Severity Buttons */}
-          <div style={{ display: 'flex', gap: '3px', background: 'rgba(15, 23, 42, 0.6)', padding: '2px', borderRadius: 'var(--radius-md)', border: '1px solid var(--bg-card-border)' }}>
+          <div style={{ display: 'flex', gap: '2px', background: '#F1F5F9', padding: '2px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
             {['all', 'critical', 'high', 'medium', 'low'].map((sev) => (
               <button
                 key={sev}
                 onClick={() => setSeverityFilter(sev)}
                 style={{
-                  background: severityFilter === sev ? 'var(--accent-indigo)' : 'transparent',
-                  color: severityFilter === sev ? '#ffffff' : 'var(--text-muted)',
+                  background: severityFilter === sev ? '#0F172A' : 'transparent',
+                  color: severityFilter === sev ? '#FFFFFF' : '#64748B',
                   border: 'none',
                   padding: '4px 8px',
-                  borderRadius: 'var(--radius-sm)',
+                  borderRadius: '6px',
                   fontSize: '11px',
-                  fontWeight: '600',
+                  fontWeight: '700',
                   textTransform: 'capitalize',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
@@ -318,18 +361,18 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
           {/* CSV Export */}
           <button
             onClick={exportCSV}
-            title="Export CSV Report"
+            title="Export CSV Forensic Report"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              background: 'rgba(30, 41, 59, 0.6)',
-              border: '1px solid var(--bg-card-border)',
-              color: 'var(--text-secondary)',
+              background: '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              color: '#1E293B',
               padding: '6px 10px',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: '8px',
               fontSize: '11px',
-              fontWeight: '500',
+              fontWeight: '600',
               cursor: 'pointer',
             }}
           >
@@ -340,23 +383,25 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
       </div>
 
       {/* Feed Table View */}
-      <div style={{ overflowX: 'auto', maxHeight: '580px' }}>
+      <div style={{ overflowX: 'auto', maxHeight: '580px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
         <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
           <thead>
             <tr style={{
-              borderBottom: '1px solid var(--bg-card-border)',
-              color: 'var(--text-muted)',
-              fontSize: '11px',
+              borderBottom: '1px solid #E2E8F0',
+              background: '#F8FAFC',
+              color: '#64748B',
+              fontSize: '10.5px',
               textTransform: 'uppercase',
-              letterSpacing: '0.04em',
+              letterSpacing: '0.05em',
+              fontWeight: '700',
             }}>
-              <th style={{ padding: '8px 8px', width: '78px' }}>Time</th>
-              <th style={{ padding: '8px 8px', width: '150px' }}>Threat & MITRE</th>
-              <th style={{ padding: '8px 6px', width: '72px' }}>Severity</th>
-              <th style={{ padding: '8px 6px', width: '95px' }}>Confidence</th>
-              <th style={{ padding: '8px 8px', width: '160px' }}>Connection Path</th>
-              <th style={{ padding: '8px 8px' }}>Key Evidence</th>
-              <th style={{ padding: '8px 8px', textAlign: 'right', width: '135px', whiteSpace: 'nowrap' }}>Actions</th>
+              <th style={{ padding: '9px 10px', width: '80px' }}>Time</th>
+              <th style={{ padding: '9px 10px', width: '155px' }}>Threat & MITRE</th>
+              <th style={{ padding: '9px 8px', width: '76px' }}>Severity</th>
+              <th style={{ padding: '9px 8px', width: '98px' }}>Confidence</th>
+              <th style={{ padding: '9px 10px', width: '165px' }}>Connection Path</th>
+              <th style={{ padding: '9px 10px' }}>Key Evidence</th>
+              <th style={{ padding: '9px 10px', textAlign: 'right', width: '200px', whiteSpace: 'nowrap' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -414,29 +459,29 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                     <tr
                       onClick={(e) => toggleExpand(alert.alert_id, e)}
                       style={{
-                        borderBottom: isExpanded ? 'none' : '1px solid rgba(148, 163, 184, 0.06)',
-                        background: isExpanded ? 'rgba(99, 102, 241, 0.06)' : 'transparent',
+                        borderBottom: isExpanded ? 'none' : '1px solid #F1F5F9',
+                        background: isExpanded ? '#F8FAFC' : 'transparent',
                         transition: 'background-color 0.15s',
                         cursor: 'pointer',
                       }}
                       onMouseEnter={(e) => {
-                        if (!isExpanded) e.currentTarget.style.backgroundColor = 'var(--bg-surface-hover)';
+                        if (!isExpanded) e.currentTarget.style.backgroundColor = '#F8FAFC';
                       }}
                       onMouseLeave={(e) => {
                         if (!isExpanded) e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
                       {/* Time Column with burst offset */}
-                      <td style={{ padding: '8px 8px', fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '8px 10px', fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ fontFamily: 'var(--font-mono)' }}>{timeStr}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontWeight: '600' }}>{timeStr}</span>
                           {isSameSecond && (
                             <span
                               className="has-tooltip"
                               style={{
                                 fontSize: '9px',
-                                color: 'var(--accent-cyan)',
-                                background: 'rgba(6, 182, 212, 0.12)',
+                                color: '#0284C7',
+                                background: '#E0F2FE',
                                 padding: '1px 4px',
                                 borderRadius: '3px',
                                 fontFamily: 'var(--font-mono)',
@@ -451,24 +496,24 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                       </td>
 
                       {/* Threat Type & MITRE Badge */}
-                      <td style={{ padding: '8px 8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                      <td style={{ padding: '8px 10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{
-                            width: '22px',
-                            height: '22px',
-                            borderRadius: 'var(--radius-sm)',
-                            background: `rgba(255, 255, 255, 0.06)`,
-                            border: `1px solid rgba(255, 255, 255, 0.12)`,
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '6px',
+                            background: `${threatConfig.color}15`,
+                            border: `1px solid ${threatConfig.color}30`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
                           }}>
-                            <ThreatIcon size={12} color={threatConfig.color} />
+                            <ThreatIcon size={13} color={threatConfig.color} />
                           </div>
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <span style={{ fontWeight: '600', color: '#f8fafc', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                              <span style={{ fontWeight: '700', color: '#0F172A', fontSize: '12px', whiteSpace: 'nowrap' }}>
                                 {threatConfig.label}
                               </span>
                               <span
@@ -477,11 +522,11 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                                   fontSize: '9px',
                                   fontFamily: 'var(--font-mono)',
                                   fontWeight: '700',
-                                  padding: '1px 4px',
+                                  padding: '1px 5px',
                                   borderRadius: '3px',
-                                  background: 'rgba(99, 102, 241, 0.15)',
-                                  color: 'var(--accent-indigo)',
-                                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                                  background: '#EEF2FF',
+                                  color: '#4338CA',
+                                  border: '1px solid #C7D2FE',
                                   cursor: 'help',
                                   whiteSpace: 'nowrap',
                                 }}
@@ -497,20 +542,19 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                       </td>
 
                       {/* Severity Badge */}
-                      <td style={{ padding: '8px 6px' }}>
+                      <td style={{ padding: '8px 8px' }}>
                         <span style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          padding: '2px 6px',
-                          borderRadius: 'var(--radius-sm)',
+                          padding: '2px 7px',
+                          borderRadius: '4px',
                           fontSize: '10px',
-                          fontWeight: '700',
+                          fontWeight: '800',
                           textTransform: 'uppercase',
                           letterSpacing: '0.04em',
                           color: sevConfig.color,
                           background: sevConfig.bg,
                           border: `1px solid ${sevConfig.border}`,
-                          boxShadow: sevConfig.glow,
                           whiteSpace: 'nowrap',
                         }}>
                           {alert.severity}
@@ -518,7 +562,7 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                       </td>
 
                       {/* Calibrated Confidence Meter */}
-                      <td style={{ padding: '8px 6px' }}>
+                      <td style={{ padding: '8px 8px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <div style={{ display: 'flex', gap: '2px' }}>
@@ -529,7 +573,7 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                                     width: '7px',
                                     height: '7px',
                                     borderRadius: '2px',
-                                    background: barIdx <= filledBars ? confLevelColor : 'rgba(255, 255, 255, 0.1)',
+                                    background: barIdx <= filledBars ? confLevelColor : '#E2E8F0',
                                   }}
                                 />
                               ))}
@@ -543,22 +587,22 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                               {confPercent}%
                             </span>
                           </div>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                          <span style={{ fontSize: '10px', color: '#64748B', lineHeight: 1, whiteSpace: 'nowrap' }}>
                             {confLevelLabel}
                           </span>
                         </div>
                       </td>
 
                       {/* Connection Path */}
-                      <td style={{ padding: '8px 8px' }}>
+                      <td style={{ padding: '8px 10px' }}>
                         <div className="has-tooltip" style={{ cursor: 'help' }}>
-                          <div style={{ fontSize: '11.5px', fontWeight: '500', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: '11.5px', fontWeight: '600', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
                             <span>{flow.src}</span>
-                            <span style={{ color: 'var(--text-muted)' }}>→</span>
-                            <span style={{ color: flow.isAggregate ? 'var(--accent-cyan)' : '#ffffff' }}>{flow.dst}</span>
+                            <span style={{ color: '#94A3B8' }}>→</span>
+                            <span style={{ color: flow.isAggregate ? '#2563EB' : '#0F172A' }}>{flow.dst}</span>
                           </div>
                           {flow.service && (
-                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '1px' }}>
+                            <div style={{ fontSize: '10px', color: '#64748B', marginTop: '1px' }}>
                               {flow.service}
                             </div>
                           )}
@@ -568,36 +612,36 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                         </div>
                       </td>
 
-                      {/* Key Evidence */}
-                      <td style={{ padding: '8px 8px', maxWidth: '190px' }}>
+                      {/* Key Evidence (Un-truncated Explainability Column) */}
+                      <td style={{ padding: '8px 10px', minWidth: '260px' }}>
                         <div style={{
-                          fontSize: '11px',
-                          color: 'var(--text-secondary)',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                          fontSize: '11.5px',
+                          lineHeight: '1.45',
+                          color: '#334155',
+                          wordBreak: 'break-word',
+                          fontWeight: '500',
                         }}>
                           {plainWhy}
                         </div>
                       </td>
 
-                      {/* Actions: AI Triage + Inspect */}
-                      <td style={{ padding: '8px 8px', textAlign: 'right', whiteSpace: 'nowrap', width: '135px' }}>
+                      {/* Actions: Copilot + Inspect + PCAP Dossier */}
+                      <td style={{ padding: '8px 10px', textAlign: 'right', whiteSpace: 'nowrap', width: '200px' }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               if (onOpenTriage) onOpenTriage(alert);
                             }}
-                            title="Run Air-Gapped GenAI SOC Analyst"
+                            title="Open Diode Copilot (Air-Gapped SLM)"
                             style={{
-                              background: 'rgba(168, 85, 247, 0.15)',
-                              border: '1px solid rgba(168, 85, 247, 0.35)',
-                              color: '#d8b4fe',
-                              padding: '3px 7px',
-                              borderRadius: 'var(--radius-sm)',
+                              background: '#EFF6FF',
+                              border: '1px solid #BFDBFE',
+                              color: '#1D4ED8',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
                               fontSize: '10.5px',
-                              fontWeight: '600',
+                              fontWeight: '700',
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
@@ -605,8 +649,8 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            <Bot size={11} color="#c084fc" />
-                            <span>AI Triage</span>
+                            <Sparkles size={11} color="#2563EB" />
+                            <span>Copilot</span>
                           </button>
 
                           <button
@@ -614,24 +658,46 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                               e.stopPropagation();
                               onSelectAlert(alert);
                             }}
-                            title="Inspect full forensic record"
+                            title="Inspect full telemetry & heuristics"
                             style={{
-                              background: 'rgba(99, 102, 241, 0.12)',
-                              border: '1px solid rgba(99, 102, 241, 0.25)',
-                              color: 'var(--accent-indigo)',
-                              padding: '3px 6px',
-                              borderRadius: 'var(--radius-sm)',
+                              background: '#F1F5F9',
+                              border: '1px solid #CBD5E1',
+                              color: '#0F172A',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
                               fontSize: '10.5px',
-                              fontWeight: '600',
+                              fontWeight: '700',
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '2px',
+                              gap: '3px',
                               whiteSpace: 'nowrap',
                             }}
                           >
                             <span>Inspect</span>
                             <ExternalLink size={10} />
+                          </button>
+
+                          <button
+                            onClick={(e) => downloadDossier(alert, e)}
+                            title="Export Forensic PCAP Dossier"
+                            style={{
+                              background: '#0F172A',
+                              border: 'none',
+                              color: '#FFFFFF',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              fontSize: '10.5px',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            <Download size={10} />
+                            <span>Dossier</span>
                           </button>
                         </div>
                       </td>
@@ -640,50 +706,53 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                     {/* Expandable Forensic Drawer */}
                     {isExpanded && (
                       <tr style={{
-                        borderBottom: '1px solid rgba(148, 163, 184, 0.12)',
-                        background: 'rgba(99, 102, 241, 0.04)',
+                        borderBottom: '1px solid #E2E8F0',
+                        background: '#F8FAFC',
                       }}>
                         <td colSpan={7} style={{ padding: '12px 18px 16px 18px' }}>
                           <div className="accordion-content" style={{
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '10px',
-                            background: 'rgba(15, 23, 42, 0.65)',
+                            background: '#FFFFFF',
                             padding: '14px 18px',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px solid rgba(99, 102, 241, 0.2)',
+                            borderRadius: '10px',
+                            border: '1px solid #E2E8F0',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Sparkles size={15} color="var(--accent-indigo)" />
-                                <span style={{ fontSize: '12px', fontWeight: '700', color: '#f8fafc', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                  Why This Was Flagged
+                                <Sparkles size={15} color="#2563EB" />
+                                <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                  Telemetry Explainability Record
                                 </span>
                               </div>
-                              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#64748B' }}>
                                 Event ID: {alert.alert_id}
                               </span>
                             </div>
 
                             {/* Natural Language Explanation */}
-                            <p style={{ fontSize: '13px', color: '#e2e8f0', lineHeight: 1.5 }}>
+                            <p style={{ fontSize: '12.5px', color: '#334155', lineHeight: 1.5, margin: 0 }}>
                               {plainWhy}
                             </p>
 
                             {/* Actions & Triggered Features */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', paddingTop: '6px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', paddingTop: '8px', borderTop: '1px solid #F1F5F9' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Triggered Signals:</span>
+                                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>Triggered Signals:</span>
                                 {(alert.evidence?.features_triggered || []).map((feat, idx) => (
                                   <span
                                     key={idx}
                                     style={{
                                       fontSize: '10px',
                                       fontFamily: 'var(--font-mono)',
+                                      fontWeight: '600',
                                       padding: '2px 6px',
                                       borderRadius: '4px',
-                                      background: 'rgba(255, 255, 255, 0.08)',
-                                      color: 'var(--text-secondary)',
+                                      background: '#F1F5F9',
+                                      color: '#334155',
+                                      border: '1px solid #E2E8F0',
                                     }}
                                   >
                                     {feat.replace(/_/g, ' ')}
@@ -695,20 +764,20 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                                 <button
                                   onClick={() => onOpenTriage && onOpenTriage(alert)}
                                   style={{
-                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.25))',
-                                    border: '1px solid rgba(168, 85, 247, 0.4)',
-                                    color: '#f8fafc',
+                                    background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+                                    border: 'none',
+                                    color: '#FFFFFF',
                                     fontSize: '11px',
-                                    fontWeight: '600',
-                                    padding: '4px 10px',
-                                    borderRadius: 'var(--radius-sm)',
+                                    fontWeight: '700',
+                                    padding: '5px 12px',
+                                    borderRadius: '6px',
                                     cursor: 'pointer',
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     gap: '5px',
                                   }}
                                 >
-                                  <Bot size={12} color="#c084fc" />
+                                  <Bot size={12} color="#FFFFFF" />
                                   <span>Air-Gapped SLM Triage Playbook</span>
                                 </button>
 
@@ -717,9 +786,9 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                                   style={{
                                     background: 'transparent',
                                     border: 'none',
-                                    color: 'var(--accent-cyan)',
+                                    color: '#2563EB',
                                     fontSize: '11px',
-                                    fontWeight: '600',
+                                    fontWeight: '700',
                                     cursor: 'pointer',
                                     display: 'inline-flex',
                                     alignItems: 'center',

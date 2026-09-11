@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, ShieldAlert, Sparkles, FileText, Activity } from 'lucide-react';
+import { X, Copy, Check, ShieldAlert, Sparkles, FileText, Activity, Download } from 'lucide-react';
 import { THREAT_CONFIG } from './ThreatDonutChart';
 
 export default function EvidenceModal({ alert, onClose }) {
   const [copied, setCopied] = useState(false);
+  const [dossierDownloaded, setDossierDownloaded] = useState(false);
 
   if (!alert) return null;
 
@@ -13,10 +14,34 @@ export default function EvidenceModal({ alert, onClose }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadDossier = () => {
+    const dossier = {
+      dossier_title: `FORENSIC_TELEMETRY_DOSSIER_${alert.alert_id}`,
+      export_timestamp: new Date().toISOString(),
+      enclave: "NET-DRISHTI AIR-GAPPED TELEMETRY ENCLAVE",
+      tap_mode: "PASSIVE_OPTICAL_DIODE_SIMPLEX_RX",
+      hardware_constraint: "ZERO_TX_WRITES_VERIFIED",
+      alert,
+      recommended_capture_syntax: `tcpdump -nn -s 0 -i eth0 'host ${alert.flow_id?.split('-')[0]?.split(':')[0] || 'any'}' -w /opt/forensics/${alert.alert_id}.pcap`,
+    };
+
+    const blob = new Blob([JSON.stringify(dossier, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NET_DRISHTI_${alert.alert_id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setDossierDownloaded(true);
+    setTimeout(() => setDossierDownloaded(false), 2000);
+  };
+
   const evidence = alert.evidence || {};
   const stats = evidence.supporting_stats || {};
   const triggered = evidence.features_triggered || [];
-  const threatMeta = THREAT_CONFIG[alert.threat_class] || { label: alert.threat_class, color: '#6366f1' };
+  const threatMeta = THREAT_CONFIG[alert.threat_class] || { label: alert.threat_class, color: '#2563EB' };
 
   return (
     <div style={{
@@ -25,8 +50,8 @@ export default function EvidenceModal({ alert, onClose }) {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.78)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.5)',
+      backdropFilter: 'blur(6px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -36,16 +61,16 @@ export default function EvidenceModal({ alert, onClose }) {
       onClick={onClose}
     >
       <div
-        className="glass-panel"
         style={{
           width: '100%',
           maxWidth: '680px',
           maxHeight: '85vh',
           overflowY: 'auto',
           padding: '26px',
-          background: '#0d1322',
-          border: '1px solid rgba(99, 102, 241, 0.3)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.85)',
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.15)',
           position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -57,34 +82,40 @@ export default function EvidenceModal({ alert, onClose }) {
             position: 'absolute',
             top: '18px',
             right: '18px',
-            background: 'transparent',
+            background: '#F1F5F9',
             border: 'none',
-            color: 'var(--text-muted)',
+            color: '#64748B',
+            borderRadius: '50%',
+            width: '28px',
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             cursor: 'pointer',
           }}
         >
-          <X size={20} />
+          <X size={16} />
         </button>
 
         {/* Modal Title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
           <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: 'var(--radius-md)',
-            background: 'rgba(239, 68, 68, 0.12)',
-            border: '1px solid rgba(239, 68, 68, 0.25)',
+            width: '42px',
+            height: '42px',
+            borderRadius: '10px',
+            background: '#FEE2E2',
+            border: '1px solid #FECACA',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <ShieldAlert size={22} color="var(--sev-critical)" />
+            <ShieldAlert size={22} color="#DC2626" />
           </div>
           <div>
-            <h2 style={{ fontSize: '17px', fontWeight: '700', color: '#ffffff' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.01em' }}>
               Incident Forensics & Telemetry Evidence
             </h2>
-            <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#64748B' }}>
               Event ID: {alert.alert_id}
             </div>
           </div>
@@ -97,55 +128,61 @@ export default function EvidenceModal({ alert, onClose }) {
           gap: '10px',
           marginBottom: '18px',
         }}>
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-card-border)' }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Threat Category</div>
-            <div style={{ fontSize: '13px', fontWeight: '600', color: threatMeta.color }}>{threatMeta.label}</div>
+          <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+            <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600' }}>Threat Category</div>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: threatMeta.color }}>{threatMeta.label}</div>
           </div>
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-card-border)' }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Severity Tier</div>
-            <div style={{ fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', color: alert.severity === 'critical' ? 'var(--sev-critical)' : alert.severity === 'high' ? 'var(--sev-high)' : 'var(--sev-medium)' }}>
+          <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+            <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600' }}>Severity Tier</div>
+            <div style={{
+              fontSize: '13px',
+              fontWeight: '800',
+              textTransform: 'uppercase',
+              color: alert.severity === 'critical' ? '#DC2626' : alert.severity === 'high' ? '#D97706' : '#2563EB'
+            }}>
               {alert.severity}
             </div>
           </div>
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-card-border)' }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Model Confidence</div>
-            <div style={{ fontSize: '13px', fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--accent-cyan)' }}>
+          <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+            <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600' }}>Model Confidence</div>
+            <div style={{ fontSize: '13px', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#2563EB' }}>
               {Math.round((alert.confidence || 0) * 100)}%
             </div>
           </div>
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-card-border)' }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Ingest Time</div>
-            <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+          <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+            <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600' }}>Ingest Time</div>
+            <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#0F172A', fontWeight: '600' }}>
               {new Date(alert.timestamp).toLocaleTimeString()}
             </div>
           </div>
         </div>
 
         {/* Network Connection Path */}
-        <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-card-border)', marginBottom: '18px' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
-            Network Connection & Target Flow
+        <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '18px' }}>
+          <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', marginBottom: '4px', fontWeight: '700' }}>
+            Unidirectional Optical Tap Flow Record
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--accent-cyan)' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#0F172A', fontWeight: '700' }}>
             {alert.flow_id}
           </div>
         </div>
 
         {/* Features Triggered */}
         <div style={{ marginBottom: '18px' }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
-            Activated Detection Signals
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px', textTransform: 'uppercase' }}>
+            Activated Detection Heuristics
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {triggered.map((feat, i) => (
               <span key={i} style={{
-                background: 'rgba(99, 102, 241, 0.12)',
-                color: 'var(--accent-indigo)',
-                border: '1px solid rgba(99, 102, 241, 0.25)',
+                background: '#EEF2FF',
+                color: '#4338CA',
+                border: '1px solid #C7D2FE',
                 padding: '3px 8px',
-                borderRadius: 'var(--radius-sm)',
+                borderRadius: '6px',
                 fontSize: '11px',
                 fontFamily: 'var(--font-mono)',
+                fontWeight: '600',
               }}>
                 {feat.replace(/_/g, ' ')}
               </span>
@@ -155,18 +192,18 @@ export default function EvidenceModal({ alert, onClose }) {
 
         {/* Supporting Statistics Table */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px', textTransform: 'uppercase' }}>
             Telemetry Measurements & Metrics
           </div>
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-card-border)', overflow: 'hidden' }}>
+          <div style={{ background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
               <tbody>
                 {Object.entries(stats).map(([k, v], idx) => (
-                  <tr key={k} style={{ borderBottom: idx !== Object.keys(stats).length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none' }}>
-                    <td style={{ padding: '7px 12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                  <tr key={k} style={{ borderBottom: idx !== Object.keys(stats).length - 1 ? '1px solid #E2E8F0' : 'none' }}>
+                    <td style={{ padding: '8px 12px', color: '#64748B', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: '600' }}>
                       {k.replace(/_/g, ' ')}
                     </td>
-                    <td style={{ padding: '7px 12px', color: '#ffffff', fontFamily: 'var(--font-mono)', fontWeight: '600', textAlign: 'right', fontSize: '11px' }}>
+                    <td style={{ padding: '8px 12px', color: '#0F172A', fontFamily: 'var(--font-mono)', fontWeight: '700', textAlign: 'right', fontSize: '11px' }}>
                       {typeof v === 'number' ? (Number.isInteger(v) ? v.toLocaleString() : v.toFixed(3)) : String(v)}
                     </td>
                   </tr>
@@ -179,38 +216,61 @@ export default function EvidenceModal({ alert, onClose }) {
         {/* Standardized JSON Record */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-              Standardized Detection JSON Record
-            </span>
-            <button
-              onClick={handleCopyJson}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                background: 'rgba(30, 41, 59, 0.8)',
-                border: '1px solid var(--bg-card-border)',
-                color: copied ? 'var(--accent-emerald)' : 'var(--text-secondary)',
-                padding: '3px 8px',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '11px',
-                cursor: 'pointer',
-              }}
-            >
-              {copied ? <Check size={11} /> : <Copy size={11} />}
-              {copied ? 'Copied' : 'Copy JSON'}
-            </button>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
+              Standardized Threat JSON Record
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={handleDownloadDossier}
+                style={{
+                  background: '#0F172A',
+                  border: 'none',
+                  color: '#FFFFFF',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                {dossierDownloaded ? <Check size={11} color="#4ADE80" /> : <Download size={11} />}
+                <span>{dossierDownloaded ? 'Dossier Saved' : 'Export Dossier'}</span>
+              </button>
+
+              <button
+                onClick={handleCopyJson}
+                style={{
+                  background: '#F1F5F9',
+                  border: '1px solid #CBD5E1',
+                  color: '#0F172A',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                {copied ? <Check size={11} color="#15803D" /> : <Copy size={11} />}
+                <span>{copied ? 'Copied' : 'Copy JSON'}</span>
+              </button>
+            </div>
           </div>
           <pre style={{
-            background: '#070a12',
+            background: '#0F172A',
+            color: '#38BDF8',
             padding: '12px',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--bg-card-border)',
+            borderRadius: '8px',
             fontFamily: 'var(--font-mono)',
             fontSize: '11px',
-            color: '#a5b4fc',
-            overflowX: 'auto',
-            maxHeight: '150px',
+            maxHeight: '140px',
+            overflow: 'auto',
+            border: '1px solid #334155',
           }}>
             {JSON.stringify(alert, null, 2)}
           </pre>

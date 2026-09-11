@@ -46,13 +46,13 @@ export default function TimelineAreaChart({ timeline = [] }) {
       {
         fill: true,
         data: values,
-        borderColor: '#6366f1',
-        backgroundColor: 'rgba(99, 102, 241, 0.12)',
+        borderColor: '#2563EB',
+        backgroundColor: 'rgba(37, 99, 235, 0.08)',
         borderWidth: 2,
         tension: 0.35,
         pointRadius: 2,
         pointHoverRadius: 5,
-        pointBackgroundColor: '#6366f1',
+        pointBackgroundColor: '#2563EB',
       },
     ],
   };
@@ -63,10 +63,10 @@ export default function TimelineAreaChart({ timeline = [] }) {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#0f172a',
-        titleColor: '#f8fafc',
-        bodyColor: '#a5b4fc',
-        borderColor: 'rgba(99, 102, 241, 0.25)',
+        backgroundColor: '#0F172A',
+        titleColor: '#F8FAFC',
+        bodyColor: '#93C5FD',
+        borderColor: '#334155',
         borderWidth: 1,
         padding: 8,
         cornerRadius: 6,
@@ -77,15 +77,15 @@ export default function TimelineAreaChart({ timeline = [] }) {
     },
     scales: {
       x: {
-        grid: { color: 'rgba(148, 163, 184, 0.04)' },
-        ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 6 },
+        grid: { color: '#F1F5F9' },
+        ticks: { color: '#64748B', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 6 },
         border: { display: false },
       },
       y: {
         beginAtZero: true,
-        grid: { color: 'rgba(148, 163, 184, 0.06)' },
+        grid: { color: '#F1F5F9' },
         ticks: {
-          color: '#64748b',
+          color: '#64748B',
           font: { family: 'JetBrains Mono', size: 9 },
           maxTicksLimit: 5,
           callback: (v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v),
@@ -98,11 +98,11 @@ export default function TimelineAreaChart({ timeline = [] }) {
   return (
     <div className="glass-panel" style={{ padding: '16px 18px', height: '180px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#f8fafc' }}>
-          Threat Detection Velocity
+        <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>
+          Threat Velocity Stream
         </h3>
-        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-          Sliding Window Trend
+        <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
+          Sliding Rate
         </span>
       </div>
       <div style={{ flex: 1, position: 'relative' }}>

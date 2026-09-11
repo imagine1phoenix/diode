@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import time
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import config
@@ -92,6 +93,7 @@ def normalize(raw_detections: list[RawDetection], apply_cooldown: bool = False) 
     ddos_by_victim: dict[str, list[RawDetection]] = {}
     recon_by_scanner: dict[str, list[RawDetection]] = {}
     c2_by_host_pair: dict[tuple[str, str], list[RawDetection]] = {}
+    dga_by_host: dict[str, list[RawDetection]] = {}
     point_threats_by_flow: dict[str, list[RawDetection]] = {}
 
     for raw in dominant_raws:
@@ -106,6 +108,9 @@ def normalize(raw_detections: list[RawDetection], apply_cooldown: bool = False) 
         elif raw.threat_class == ThreatClass.C2_BEACONING:
             pair = (src_ip, dst_ip) if (src_ip and dst_ip) else (raw.flow_id, "")
             c2_by_host_pair.setdefault(pair, []).append(raw)
+        elif raw.threat_class == ThreatClass.DGA_DNS:
+            host = src_ip or raw.flow_id
+            dga_by_host.setdefault(host, []).append(raw)
         else:
             point_threats_by_flow.setdefault(raw.flow_id, []).append(raw)
 
@@ -207,6 +212,44 @@ def normalize(raw_detections: list[RawDetection], apply_cooldown: bool = False) 
         if alert:
             alerts.append(alert)
 
+    # --- Process DGA DNS Incidents (1 alert per client host per window) ---
+    for host_ip, detections in dga_by_host.items():
+        cooldown_key = f"dga:{host_ip}"
+        if apply_cooldown and config.ALERT_COOLDOWN_SECONDS > 0:
+            last = _incident_cooldown.get(cooldown_key, 0.0)
+            if (current_time - last) < config.ALERT_COOLDOWN_SECONDS:
+                logger.debug("DGA alert for host %s suppressed under cooldown", host_ip)
+                continue
+            _incident_cooldown[cooldown_key] = current_time
+
+        detections.sort(key=lambda d: (d.confidence, len(d.features_triggered)), reverse=True)
+        primary = detections[0]
+        all_features = list(dict.fromkeys([f for d in detections for f in d.features_triggered]))
+        max_conf = max(d.confidence for d in detections)
+
+        stats = dict(primary.supporting_stats)
+        stats["host_ip"] = host_ip
+        stats["query_count"] = len(detections)
+        if len(detections) > 1:
+            stats["dga_queries_observed"] = len(detections)
+            domains = list(dict.fromkeys([
+                d.supporting_stats.get("domain", "")
+                for d in detections if d.supporting_stats.get("domain")
+            ]))
+            if domains:
+                stats["sample_domains"] = domains[:3]
+
+        alert = _build_alert(
+            flow_id=primary.flow_id,
+            threat_class=ThreatClass.DGA_DNS,
+            confidence=max_conf,
+            features_triggered=all_features,
+            supporting_stats=stats,
+            detector_version=primary.detector_version,
+        )
+        if alert:
+            alerts.append(alert)
+
     # --- Process Point Threats with Flow-Level Mutual Exclusion ---
     for flow_id, detections in point_threats_by_flow.items():
         detections.sort(key=lambda d: (d.confidence, len(d.features_triggered)), reverse=True)
@@ -234,6 +277,15 @@ def normalize(raw_detections: list[RawDetection], apply_cooldown: bool = False) 
         )
         if alert:
             alerts.append(alert)
+
+    # Stagger alert timestamps so demo and live stream progress naturally in time
+    if alerts:
+        now_dt = datetime.now(timezone.utc)
+        num_alerts = len(alerts)
+        for idx, alert in enumerate(alerts):
+            # Calculate staggered timestamp (most recent at now, preceding alerts stepped back)
+            stagger = (num_alerts - 1 - idx) * 14.0 + (idx % 4) * 3.0
+            alert.timestamp = (now_dt - timedelta(seconds=stagger)).isoformat()
 
     return alerts
 

@@ -20,7 +20,7 @@ export default function SimulateModal({
       name: 'Combined Threat Scenario Suite',
       description: 'Replays benign baseline traffic mixed with SYN flood, port sweep, C2 beacon, DGA DNS, and exfiltration.',
       icon: Zap,
-      color: '#6366f1',
+      color: '#2563EB',
       badge: 'Full Demo Suite',
     },
     {
@@ -28,7 +28,7 @@ export default function SimulateModal({
       name: 'Volumetric SYN & UDP Flooding',
       description: 'High packet-rate burst testing arrival rate velocity and source IP entropy detection.',
       icon: ShieldAlert,
-      color: THREAT_CONFIG.ddos.color,
+      color: '#DC2626',
       badge: 'Network Layer',
     },
     {
@@ -36,7 +36,7 @@ export default function SimulateModal({
       name: 'Reconnaissance & Port Scanning',
       description: 'Probes high-cardinality destination ports and horizontal subnet sweeps.',
       icon: Cpu,
-      color: THREAT_CONFIG.recon_scan.color,
+      color: '#D97706',
       badge: 'Service Mapping',
     },
     {
@@ -44,7 +44,7 @@ export default function SimulateModal({
       name: 'Botnet C2 Periodic Beaconing',
       description: 'Low-jitter periodic heartbeats evaluated via FFT spectral analysis and host-pair time series.',
       icon: Radio,
-      color: THREAT_CONFIG.c2_beaconing.color,
+      color: '#4F46E5',
       badge: 'Host Heartbeat',
     },
     {
@@ -52,7 +52,7 @@ export default function SimulateModal({
       name: 'DGA Domains & DNS Tunnelling',
       description: 'Random domain queries scored with trained ML Random Forest and Shannon character entropy.',
       icon: Globe,
-      color: THREAT_CONFIG.dga_dns.color,
+      color: '#0284C7',
       badge: 'AI / ML Classified',
     },
     {
@@ -60,7 +60,7 @@ export default function SimulateModal({
       name: 'Data Exfiltration (Egress Spike)',
       description: 'Heavy outbound payload bursts exceeding physical diode egress baseline limits.',
       icon: ArrowUpRight,
-      color: THREAT_CONFIG.exfiltration.color,
+      color: '#059669',
       badge: 'Egress Saturation',
     },
   ];
@@ -68,22 +68,30 @@ export default function SimulateModal({
   // Run with Interactive Pipeline Walkthrough (Jury Mode)
   const handleRunWithInspector = async () => {
     setResult(null);
-    const simData = await onSimulate(selectedThreat);
-    onClose();
-    if (onOpenInspector) {
-      onOpenInspector(selectedThreat, simData);
+    try {
+      const res = await onSimulate(selectedThreat);
+      setResult(`Simulated stream ingested: ${res.alerts_generated || 0} alerts detected.`);
+      if (onOpenInspector) {
+        onClose();
+        onOpenInspector(selectedThreat, res);
+      }
+    } catch (err) {
+      setResult('Simulation failed — check server logs.');
     }
   };
 
-  // Run instant background ingestion
+  // Instant Run without Opening Pipeline Inspector
   const handleRunInstant = async () => {
     setResult(null);
-    await onSimulate(selectedThreat);
-    setResult('Simulation traffic ingested and classified by AI pipeline!');
-    setTimeout(() => {
-      onClose();
-      setResult(null);
-    }, 1200);
+    try {
+      const res = await onSimulate(selectedThreat);
+      setResult(`Simulated stream ingested: ${res.alerts_generated || 0} alerts detected.`);
+      setTimeout(() => {
+        onClose();
+      }, 1000);
+    } catch (err) {
+      setResult('Simulation failed — check server logs.');
+    }
   };
 
   return (
@@ -93,8 +101,8 @@ export default function SimulateModal({
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.78)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'rgba(15, 23, 42, 0.5)',
+      backdropFilter: 'blur(6px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -104,14 +112,14 @@ export default function SimulateModal({
       onClick={onClose}
     >
       <div
-        className="glass-panel"
         style={{
           width: '100%',
           maxWidth: '620px',
           padding: '26px',
-          background: '#0d1322',
-          border: '1px solid rgba(99, 102, 241, 0.3)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.85)',
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.15)',
           position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -122,32 +130,39 @@ export default function SimulateModal({
             position: 'absolute',
             top: '18px',
             right: '18px',
-            background: 'transparent',
+            background: '#F1F5F9',
             border: 'none',
-            color: 'var(--text-muted)',
+            color: '#64748B',
+            borderRadius: '50%',
+            width: '28px',
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             cursor: 'pointer',
           }}
         >
-          <X size={20} />
+          <X size={16} />
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
           <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+            width: '42px',
+            height: '42px',
+            borderRadius: '10px',
+            background: 'linear-gradient(135deg, #2563EB, #0284C7)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
           }}>
             <Zap size={20} color="#ffffff" />
           </div>
           <div>
-            <h2 style={{ fontSize: '17px', fontWeight: '700', color: '#ffffff' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.01em' }}>
               Threat Scenario Simulator
             </h2>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '12px', color: '#64748B', fontWeight: '500' }}>
               Safe offline replay across the one-way diode tap to demonstrate live AI detection
             </div>
           </div>
@@ -167,18 +182,19 @@ export default function SimulateModal({
                   alignItems: 'center',
                   gap: '12px',
                   padding: '10px 14px',
-                  borderRadius: 'var(--radius-md)',
-                  background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.6)',
-                  border: `1px solid ${isSelected ? 'var(--accent-indigo)' : 'var(--bg-card-border)'}`,
+                  borderRadius: '10px',
+                  background: isSelected ? '#EFF6FF' : '#F8FAFC',
+                  border: `1px solid ${isSelected ? '#93C5FD' : '#E2E8F0'}`,
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
               >
                 <div style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(255, 255, 255, 0.08)',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: isSelected ? '#DBEAFE' : '#FFFFFF',
+                  border: '1px solid #E2E8F0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -188,21 +204,21 @@ export default function SimulateModal({
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff' }}>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#0F172A' }}>
                       {sc.name}
                     </span>
                     <span style={{
                       fontSize: '9px',
                       padding: '1px 6px',
-                      borderRadius: 'var(--radius-full)',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'var(--text-secondary)',
-                      fontWeight: '600',
+                      borderRadius: '9999px',
+                      background: isSelected ? '#BFDBFE' : '#E2E8F0',
+                      color: isSelected ? '#1E40AF' : '#475569',
+                      fontWeight: '700',
                     }}>
                       {sc.badge}
                     </span>
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
                     {sc.description}
                   </div>
                 </div>
@@ -211,7 +227,7 @@ export default function SimulateModal({
                   name="scenario"
                   checked={isSelected}
                   onChange={() => setSelectedThreat(sc.id)}
-                  style={{ accentColor: 'var(--accent-indigo)', cursor: 'pointer' }}
+                  style={{ accentColor: '#2563EB', cursor: 'pointer' }}
                 />
               </div>
             );
@@ -221,18 +237,18 @@ export default function SimulateModal({
         {/* Jury Guidance Callout */}
         <div style={{
           margin: '14px 0 16px',
-          padding: '10px 14px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'rgba(99, 102, 241, 0.1)',
-          border: '1px solid rgba(99, 102, 241, 0.25)',
+          padding: '12px 14px',
+          borderRadius: '10px',
+          background: '#EFF6FF',
+          border: '1px solid #BFDBFE',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
         }}>
-          <Sparkles size={16} color="var(--accent-cyan)" />
-          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-            <strong style={{ color: '#ffffff' }}>Recommendation for Judges:</strong> Use{' '}
-            <span style={{ color: 'var(--accent-cyan)', fontWeight: '600' }}>"Launch Live Pipeline Walkthrough"</span> to observe how the one-way optical diode ingest, 5-tuple flow assembly, entropy/FFT math, and ML models classify threats in sequence.
+          <Sparkles size={16} color="#2563EB" />
+          <div style={{ fontSize: '11.5px', color: '#1E3A8A', lineHeight: '1.4' }}>
+            <strong style={{ color: '#1E40AF' }}>Recommendation for Judges:</strong> Use{' '}
+            <span style={{ color: '#2563EB', fontWeight: '700' }}>"Launch Live Pipeline Walkthrough"</span> to observe how the one-way optical diode ingest, 5-tuple flow assembly, entropy/FFT math, and ML models classify threats in sequence.
           </div>
         </div>
 
@@ -242,9 +258,9 @@ export default function SimulateModal({
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            color: 'var(--accent-emerald)',
+            color: '#15803D',
             fontSize: '12px',
-            fontWeight: '600',
+            fontWeight: '700',
             marginBottom: '12px',
           }}>
             <CheckCircle2 size={15} />
@@ -258,12 +274,13 @@ export default function SimulateModal({
             onClick={onClose}
             style={{
               padding: '8px 16px',
-              borderRadius: 'var(--radius-md)',
-              background: 'transparent',
-              border: '1px solid var(--bg-card-border)',
-              color: 'var(--text-secondary)',
+              borderRadius: '8px',
+              background: '#F1F5F9',
+              border: '1px solid #CBD5E1',
+              color: '#475569',
               cursor: 'pointer',
               fontSize: '12px',
+              fontWeight: '600',
             }}
           >
             Cancel
@@ -280,17 +297,17 @@ export default function SimulateModal({
                 alignItems: 'center',
                 gap: '6px',
                 padding: '8px 14px',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(15, 23, 42, 0.8)',
-                border: '1px solid var(--bg-card-border)',
-                color: 'var(--text-primary)',
-                fontWeight: '500',
+                borderRadius: '8px',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                color: '#0F172A',
+                fontWeight: '600',
                 cursor: isSimulating ? 'not-allowed' : 'pointer',
                 fontSize: '12px',
                 opacity: isSimulating ? 0.6 : 1,
               }}
             >
-              <Zap size={13} color="var(--accent-cyan)" />
+              <Zap size={13} color="#2563EB" />
               <span>Instant Ingest</span>
             </button>
 
@@ -303,24 +320,24 @@ export default function SimulateModal({
                 alignItems: 'center',
                 gap: '8px',
                 padding: '8px 18px',
-                borderRadius: 'var(--radius-md)',
-                background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
                 border: 'none',
                 color: '#ffffff',
                 fontWeight: '700',
                 cursor: isSimulating ? 'not-allowed' : 'pointer',
                 fontSize: '12px',
                 opacity: isSimulating ? 0.7 : 1,
-                boxShadow: '0 0 20px rgba(79, 70, 229, 0.45)',
+                boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
               }}
             >
               {isSimulating ? <Loader2 size={15} className="pulse" /> : <Play size={14} />}
               <span>{isSimulating ? 'Ingesting Simulated Stream...' : 'Launch Live Pipeline Walkthrough'}</span>
               <span style={{
                 fontSize: '9px',
-                fontWeight: '700',
-                padding: '1px 5px',
-                borderRadius: 'var(--radius-full)',
+                fontWeight: '800',
+                padding: '1px 6px',
+                borderRadius: '9999px',
                 background: 'rgba(255, 255, 255, 0.25)',
                 letterSpacing: '0.04em',
               }}>

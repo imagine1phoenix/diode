@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
-import StatsCards from './components/StatsCards';
+import TacticalOverviewCards from './components/TacticalOverviewCards';
 import AlertTable from './components/AlertTable';
 import ThreatGeoMap from './components/ThreatGeoMap';
 import ThreatRadarPanel from './components/ThreatRadarPanel';
@@ -8,8 +8,9 @@ import EvidenceModal from './components/EvidenceModal';
 import SimulateModal from './components/SimulateModal';
 import AITriageDrawer from './components/AITriageDrawer';
 import PipelineInspectorModal from './components/PipelineInspectorModal';
+import VoiceAuditAssist from './components/VoiceAuditAssist';
 import { useAlertStream } from './hooks/useAlertStream';
-import { List, Globe2, Bot, Activity, Zap, Sparkles } from 'lucide-react';
+import { List, Globe2, Bot, Activity, Zap, Sparkles, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 
 export default function App() {
   const {
@@ -30,6 +31,10 @@ export default function App() {
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [inspectorScenario, setInspectorScenario] = useState('all');
   const [inspectorResult, setInspectorResult] = useState(null);
+
+  // Secondary panel states: Kept collapsed/toggleable so Live Alert Feed remains the primary focal element
+  const [showTopology, setShowTopology] = useState(false);
+  const [showRadar, setShowRadar] = useState(false);
 
   // Tab persistence: Remember user's tab choice across page reloads and refreshes
   const getInitialTab = () => {
@@ -70,8 +75,20 @@ export default function App() {
     setIsInspectorOpen(true);
   };
 
+  const handleOpenCopilot = () => {
+    const target = alerts[0] || {
+      alert_id: 'drishti-core-01',
+      threat_class: 'ddos',
+      severity: 'critical',
+      flow_id: '33.34.239.181:21476-10.0.0.1:80-tcp',
+      confidence: 0.96,
+      evidence: { features_triggered: ['high_flow_rate', 'packet_size_uniformity'] }
+    };
+    setTriageAlert(target);
+  };
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-main)' }}>
       {/* Navigation Header */}
       <Header
         connected={connected}
@@ -79,155 +96,231 @@ export default function App() {
         totalAlerts={stats.total_alerts}
         onOpenSimulate={() => setIsSimulateOpen(true)}
         onOpenInspector={() => handleOpenInspectorWithScenario('all')}
+        onOpenCopilot={handleOpenCopilot}
         onRefresh={refresh}
         isRefreshing={isRefreshing}
         isSimulating={isSimulating}
       />
 
       {/* Main SOC Dashboard Viewport */}
-      <main style={{ flex: 1, padding: '18px 24px', maxWidth: '1680px', width: '100%', margin: '0 auto' }}>
-        {/* Executive Metric Summary Strip */}
-        <StatsCards stats={stats} />
+      <main style={{ flex: 1, padding: '20px 28px', maxWidth: '1720px', width: '100%', margin: '0 auto' }}>
+        {/* Tactical Overview Cards (Command Center Corridors) */}
+        <TacticalOverviewCards
+          stats={stats}
+          alerts={alerts}
+          onInspectTarget={(a) => {
+            if (a) setSelectedAlert(a);
+            else if (alerts[0]) setSelectedAlert(alerts[0]);
+          }}
+          onAnalyzeMetrics={() => handleOpenInspectorWithScenario('all')}
+          onExportPcap={() => {
+            const targetAlert = alerts.find((a) => a.threat_class === 'c2_beaconing') || alerts[0] || {
+              alert_id: 'NET-DRISHTI-C2-01',
+              threat_class: 'c2_beaconing',
+              severity: 'critical',
+              flow_id: '192.168.1.30:49210-203.0.113.42:443-tcp',
+              confidence: 0.94,
+              evidence: { features_triggered: ['fft_spectral_peak', 'low_jitter'] },
+            };
+            const dossier = {
+              dossier_title: `FORENSIC_TELEMETRY_DOSSIER_${targetAlert.alert_id}`,
+              export_timestamp: new Date().toISOString(),
+              enclave: 'NET-DRISHTI AIR-GAPPED TELEMETRY ENCLAVE',
+              tap_mode: 'PASSIVE_OPTICAL_DIODE_SIMPLEX_RX',
+              hardware_constraint: 'ZERO_TX_WRITES_VERIFIED',
+              alert: targetAlert,
+              recommended_capture_syntax: `tcpdump -nn -s 0 -i eth0 'host 192.168.1.30 and host 203.0.113.42' -w /opt/forensics/c2_beacon_${Date.now()}.pcap`,
+            };
+            const blob = new Blob([JSON.stringify(dossier, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `FORENSIC_DOSSIER_${targetAlert.alert_id}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }}
+          onLiveStream={() => {
+            const el = document.getElementById('live-threat-feed');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
 
-        {/* Interactive Data Diode Pipeline Topology Banner (Jury Focus) */}
+        {/* Collapsible Pipeline Topology Bar (Tactical White Card) */}
         <div style={{
-          margin: '14px 0 16px',
-          padding: '8px 16px',
-          borderRadius: 'var(--radius-md)',
-          background: isSimulating ? 'rgba(99, 102, 241, 0.16)' : 'rgba(15, 23, 42, 0.65)',
-          border: isSimulating ? '1px solid rgba(99, 102, 241, 0.5)' : '1px solid var(--bg-card-border)',
-          boxShadow: isSimulating ? '0 0 25px rgba(99, 102, 241, 0.25)' : 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '10px',
-          transition: 'all 0.3s ease',
+          margin: '0 0 18px',
+          borderRadius: '14px',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.04)',
+          overflow: 'hidden',
+          transition: 'all 0.2s ease',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          {/* Summary Strip */}
+          <div
+            style={{
+              padding: '8px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              userSelect: 'none',
+              gap: '10px',
+              flexWrap: 'wrap',
+            }}
+            onClick={() => setShowTopology(!showTopology)}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
               <span style={{
-                width: '8px',
-                height: '8px',
+                width: '7px',
+                height: '7px',
                 borderRadius: '50%',
-                background: isSimulating ? 'var(--accent-cyan)' : 'var(--accent-emerald)',
+                background: isSimulating ? '#0284C7' : '#15803D',
+                flexShrink: 0,
               }} className={isSimulating ? 'pulse' : ''} />
-              <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
-                {isSimulating ? 'Active Ingest Stream' : 'Pipeline Topology'}
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                Pipeline Architecture:
+              </span>
+              <span style={{ fontSize: '11px', color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: '500' }}>
+                Optical Tap (Rx) ➔ 5-Tuple Assembler ➔ Feature Math ➔ Multi-Threat AI ➔ SOC Dispatch
               </span>
             </div>
 
-            {/* 5 Sequential Micro-Stages */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', flexWrap: 'wrap' }}>
-              <span style={{
-                padding: '2px 7px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(6, 182, 212, 0.12)',
-                color: 'var(--accent-cyan)',
-                border: '1px solid rgba(6, 182, 212, 0.3)',
-                fontWeight: '600',
-                whiteSpace: 'nowrap',
-              }}>
-                1. Optical Tap (Rx)
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>➔</span>
-              <span style={{
-                padding: '2px 7px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(99, 102, 241, 0.12)',
-                color: '#a5b4fc',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
-                fontWeight: '600',
-                whiteSpace: 'nowrap',
-              }}>
-                2. 5-Tuple Assembler
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>➔</span>
-              <span style={{
-                padding: '2px 7px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(168, 85, 247, 0.12)',
-                color: '#d8b4fe',
-                border: '1px solid rgba(168, 85, 247, 0.3)',
-                fontWeight: '600',
-                whiteSpace: 'nowrap',
-              }}>
-                3. Feature Math (Entropy/FFT)
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>➔</span>
-              <span style={{
-                padding: '2px 7px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(236, 72, 153, 0.12)',
-                color: '#f472b6',
-                border: '1px solid rgba(236, 72, 153, 0.3)',
-                fontWeight: '600',
-                whiteSpace: 'nowrap',
-              }}>
-                4. Multi-Threat AI (RF & IF)
-              </span>
-              <span style={{ color: 'var(--text-muted)' }}>➔</span>
-              <span style={{
-                padding: '2px 7px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'rgba(16, 185, 129, 0.12)',
-                color: 'var(--accent-emerald)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                fontWeight: '600',
-                whiteSpace: 'nowrap',
-              }}>
-                5. SOC Dispatch
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenInspectorWithScenario('all');
+                }}
+                title="Open interactive step-by-step pipeline inspector"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  background: '#EFF6FF',
+                  border: '1px solid #DBEAFE',
+                  color: '#1D4ED8',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                }}
+              >
+                <Activity size={12} color="#2563EB" />
+                <span>Pipeline Inspector</span>
+              </button>
+              <button
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#64748B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                {showTopology ? (
+                  <><span>Hide Stages</span><ChevronUp size={13} /></>
+                ) : (
+                  <><span>Show Stages</span><ChevronDown size={13} /></>
+                )}
+              </button>
             </div>
           </div>
 
-          <button
-            onClick={() => handleOpenInspectorWithScenario('all')}
-            style={{
+          {/* Expanded 5 Micro-Stages */}
+          {showTopology && (
+            <div style={{
+              padding: '12px 16px',
+              borderTop: '1px solid #E2E8F0',
+              background: '#F8FAFC',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(6, 182, 212, 0.25))',
-              border: '1px solid rgba(99, 102, 241, 0.4)',
-              color: '#ffffff',
+              gap: '8px',
               fontSize: '11px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              flexShrink: 0,
-              transition: 'all 0.15s',
-            }}
-          >
-            <Activity size={13} color="var(--accent-cyan)" />
-            <span>Open Interactive Pipeline Inspector</span>
-            <span style={{
-              fontSize: '9px',
-              padding: '1px 5px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(255, 255, 255, 0.2)',
-              fontWeight: '700',
+              flexWrap: 'wrap',
             }}>
-              JURY VIEW
-            </span>
-          </button>
+              <span style={{
+                padding: '4px 9px',
+                borderRadius: '6px',
+                background: '#E0F2FE',
+                color: '#0369A1',
+                border: '1px solid #BAE6FD',
+                fontWeight: '700',
+              }}>
+                1. Optical Tap (Rx-Only Physical Diode)
+              </span>
+              <span style={{ color: '#94A3B8' }}>➔</span>
+              <span style={{
+                padding: '4px 9px',
+                borderRadius: '6px',
+                background: '#EEF2FF',
+                color: '#4338CA',
+                border: '1px solid #C7D2FE',
+                fontWeight: '700',
+              }}>
+                2. 5-Tuple Assembler & Sliding Window
+              </span>
+              <span style={{ color: '#94A3B8' }}>➔</span>
+              <span style={{
+                padding: '4px 9px',
+                borderRadius: '6px',
+                background: '#F5F3FF',
+                color: '#6D28D9',
+                border: '1px solid #DDD6FE',
+                fontWeight: '700',
+              }}>
+                3. Feature Math (Entropy, FFT, Inter-Arrival)
+              </span>
+              <span style={{ color: '#94A3B8' }}>➔</span>
+              <span style={{
+                padding: '4px 9px',
+                borderRadius: '6px',
+                background: '#FDF2F8',
+                color: '#BE185D',
+                border: '1px solid #FBCFE8',
+                fontWeight: '700',
+              }}>
+                4. Multi-Threat AI Classifiers (RF, IF & Signatures)
+              </span>
+              <span style={{ color: '#94A3B8' }}>➔</span>
+              <span style={{
+                padding: '4px 9px',
+                borderRadius: '6px',
+                background: '#DCFCE7',
+                color: '#15803D',
+                border: '1px solid #BBF7D0',
+                fontWeight: '700',
+              }}>
+                5. SOC Dispatch & Alert Store
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* View Switcher Tabs: Alert Feed vs. Global Threat Map */}
+        {/* View Switcher & Analytics Controls */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '14px',
+          marginBottom: '16px',
+          gap: '12px',
+          flexWrap: 'wrap',
         }}>
+          {/* Feed vs Map View Switcher */}
           <div style={{
             display: 'inline-flex',
             gap: '4px',
-            background: 'rgba(15, 23, 42, 0.7)',
+            background: '#FFFFFF',
             padding: '4px',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--bg-card-border)',
+            borderRadius: '10px',
+            border: '1px solid #CBD5E1',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
           }}>
             <button
               onClick={() => handleTabChange('feed')}
@@ -236,18 +329,18 @@ export default function App() {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '6px 14px',
-                borderRadius: 'var(--radius-sm)',
+                borderRadius: '6px',
                 border: 'none',
-                background: activeTab === 'feed' ? 'var(--accent-indigo)' : 'transparent',
-                color: activeTab === 'feed' ? '#ffffff' : 'var(--text-secondary)',
-                fontWeight: '600',
+                background: activeTab === 'feed' ? '#0F172A' : 'transparent',
+                color: activeTab === 'feed' ? '#FFFFFF' : '#64748B',
+                fontWeight: '700',
                 fontSize: '12px',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
               }}
             >
               <List size={14} />
-              <span>Live Security Alert Feed</span>
+              <span>Live Threat Feed</span>
             </button>
 
             <button
@@ -257,35 +350,57 @@ export default function App() {
                 alignItems: 'center',
                 gap: '6px',
                 padding: '6px 14px',
-                borderRadius: 'var(--radius-sm)',
+                borderRadius: '6px',
                 border: 'none',
-                background: activeTab === 'map' ? 'var(--accent-cyan)' : 'transparent',
-                color: activeTab === 'map' ? '#041017' : 'var(--text-secondary)',
-                fontWeight: '600',
+                background: activeTab === 'map' ? '#2563EB' : 'transparent',
+                color: activeTab === 'map' ? '#FFFFFF' : '#64748B',
+                fontWeight: '700',
                 fontSize: '12px',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
               }}
             >
               <Globe2 size={14} />
-              <span>Global Threat Map (Dark Mode)</span>
+              <span>Global Threat Map</span>
             </button>
           </div>
 
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>Air-Gapped SLM Auto-Triage Enabled</span>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-emerald)' }} />
-          </div>
+          {/* Toggle for Analytics Sidebar */}
+          <button
+            onClick={() => setShowRadar(!showRadar)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 14px',
+              borderRadius: '8px',
+              background: showRadar ? '#0F172A' : '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              color: showRadar ? '#FFFFFF' : '#1E293B',
+              fontSize: '12px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <BarChart3 size={14} color={showRadar ? '#38BDF8' : '#2563EB'} />
+            <span>{showRadar ? 'Hide Threat Analytics' : 'Threat Analytics Radar'}</span>
+          </button>
         </div>
 
-        {/* Primary Workspace: Alert Feed / Threat Map (Hero) + Threat Radar Panel */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) 350px',
-          gap: '16px',
-          alignItems: 'start',
-        }} className="soc-grid">
-          {/* Hero Focal Point: Active Tab View */}
+        {/* Primary Workspace: Live Alert Feed (Hero Focal Element) + Optional Analytics Radar */}
+        <div
+          id="live-threat-feed"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: showRadar ? 'minmax(0, 1fr) 350px' : 'minmax(0, 1fr)',
+            gap: '16px',
+            alignItems: 'start',
+          }}
+          className="soc-grid"
+        >
+          {/* Hero Focal Point: Active Tab View (takes 100% width when radar is hidden) */}
           <section style={{ minWidth: 0 }}>
             {activeTab === 'feed' ? (
               <AlertTable
@@ -298,12 +413,20 @@ export default function App() {
             )}
           </section>
 
-          {/* Secondary Telemetry: Threat Vector & Velocity Radar */}
-          <section style={{ minWidth: 0 }}>
-            <ThreatRadarPanel stats={stats} timeline={timeline} />
-          </section>
+          {/* Secondary Telemetry: Threat Vector & Velocity Radar (Behind Toggle) */}
+          {showRadar && (
+            <section style={{ minWidth: 0 }}>
+              <ThreatRadarPanel stats={stats} timeline={timeline} />
+            </section>
+          )}
         </div>
       </main>
+
+      {/* Floating Tactical Voice Action Assist */}
+      <VoiceAuditAssist
+        topAlert={alerts[0]}
+        onInspectAlert={(a) => setSelectedAlert(a)}
+      />
 
       {/* Footer */}
       <footer style={{

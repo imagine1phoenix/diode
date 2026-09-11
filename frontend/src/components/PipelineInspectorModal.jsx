@@ -452,13 +452,12 @@ export default function PipelineInspectorModal({
                       : isPast
                         ? 'rgba(16, 185, 129, 0.08)'
                         : 'rgba(15, 23, 42, 0.45)',
-                    border: `1px solid ${
-                      isActive
+                    border: `1px solid ${isActive
                         ? stg.color
                         : isPast
                           ? 'rgba(16, 185, 129, 0.35)'
                           : 'rgba(148, 163, 184, 0.12)'
-                    }`,
+                      }`,
                     cursor: 'pointer',
                     position: 'relative',
                     transition: 'all 0.2s ease',
@@ -576,7 +575,7 @@ export default function PipelineInspectorModal({
 
             {/* Split Inspection Details & Code/Formulas */}
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 0.9fr)', gap: '18px' }}>
-              
+
               {/* Telemetry Metrics Grid */}
               <div style={{
                 background: 'rgba(10, 15, 28, 0.7)',

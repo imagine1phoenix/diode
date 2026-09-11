@@ -41,7 +41,7 @@ FLOW_TIMEOUT_SECONDS: float = float(os.getenv("SIH_FLOW_TIMEOUT", "30.0"))
 # ---------------------------------------------------------------------------
 # Detection thresholds — DDoS (PRD §7)
 # ---------------------------------------------------------------------------
-DDOS_FLOW_RATE_THRESHOLD: float = float(os.getenv("SIH_DDOS_FLOW_RATE", "1000.0"))
+DDOS_FLOW_RATE_THRESHOLD: float = float(os.getenv("SIH_DDOS_FLOW_RATE", "20.0"))
 DDOS_SRC_ENTROPY_LOW: float = float(os.getenv("SIH_DDOS_ENTROPY_LOW", "0.5"))
 DDOS_SYN_ACK_RATIO_THRESHOLD: float = float(os.getenv("SIH_DDOS_SYN_ACK", "5.0"))
 DDOS_PKT_SIZE_UNIFORMITY_THRESHOLD: float = float(

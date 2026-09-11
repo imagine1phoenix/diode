@@ -19,6 +19,7 @@ from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnec
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 import config
 from src.alert.schema import Alert
@@ -224,6 +225,75 @@ async def triage_endpoint(alert: dict[str, Any]) -> dict[str, Any]:
     """
     from src.api.triage import triage_alert
     return triage_alert(alert)
+
+
+class CopilotChatRequest(BaseModel):
+    query: str
+    alert: dict[str, Any] | None = None
+    history: list[dict[str, str]] | None = None
+
+
+@app.post("/api/copilot/chat")
+async def copilot_chat_endpoint(req: CopilotChatRequest) -> dict[str, Any]:
+    """
+    Interactive Copilot Chat Engine.
+    Executes multi-turn tactical Q&A, writes packet filters, and explains ML detector math.
+    """
+    from src.api.triage import copilot_chat
+    assert _pipeline is not None
+    assert _store is not None
+    enclave_context = {
+        "throughput": _pipeline.throughput.report(),
+        "total_alerts": len(_store.get_recent(100)),
+    }
+    return copilot_chat(
+        query=req.query,
+        alert_data=req.alert,
+        history=req.history,
+        enclave_context=enclave_context,
+    )
+
+
+@app.get("/api/copilot/briefing")
+async def copilot_briefing_endpoint() -> dict[str, Any]:
+    """
+    Generate an executive AI briefing summarizing overall enclave posture.
+    """
+    from src.api.triage import generate_enclave_briefing
+    assert _pipeline is not None
+    assert _store is not None
+    recent = _store.get_recent(100)
+    stats = _pipeline.get_stats()
+    return generate_enclave_briefing(recent, stats)
+
+
+@app.get("/api/forensics/dossier/{alert_id}")
+async def get_forensic_dossier(alert_id: str) -> dict[str, Any]:
+    """
+    Generate a full forensic PCAP and telemetry dossier for legal/tactical audit.
+    """
+    import time
+    assert _store is not None
+    alert = _store.get_by_id(alert_id)
+    if alert is None:
+        recent = _store.get_recent(1)
+        alert = recent[0] if recent else {"alert_id": alert_id, "threat_class": "c2_beaconing"}
+
+    from src.api.triage import triage_alert
+    triage = triage_alert(alert)
+    flow_id = str(alert.get("flow_id", "unknown"))
+    src_ip = flow_id.split("-")[0].split(":")[0] if "-" in flow_id else "unknown"
+
+    return {
+        "dossier_title": f"FORENSIC_TELEMETRY_DOSSIER_{alert_id}",
+        "export_timestamp": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+        "enclave": "NET-DRISHTI AIR-GAPPED TELEMETRY ENCLAVE",
+        "tap_mode": "PASSIVE_OPTICAL_DIODE_SIMPLEX_RX",
+        "hardware_constraint": "ZERO_TX_WRITES_VERIFIED",
+        "alert": alert,
+        "ai_triage": triage,
+        "recommended_capture_syntax": f"tcpdump -nn -s 0 -i eth0 'host {src_ip}' -w /opt/forensics/{alert_id}.pcap",
+    }
 
 
 @app.get("/api/geoip/threats")

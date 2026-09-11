@@ -79,6 +79,9 @@ class C2BeaconingDetector(BaseDetector):
         has_intra_packets = flow_features.packet_count >= config.C2_MIN_CONNECTIONS
         has_pair_sessions = len(pair_times) >= 3
 
+        if flow_features.proto == "udp" and (flow_features.src_port == 53 or flow_features.dst_port == 53):
+            return []
+
         if not has_intra_packets and not has_pair_sessions:
             return []
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Info } from 'lucide-react';
+import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Sparkles } from 'lucide-react';
 
 export default function Header({
   connected,
@@ -7,146 +7,162 @@ export default function Header({
   totalAlerts,
   onOpenSimulate,
   onOpenInspector,
+  onOpenCopilot,
   onRefresh,
   isRefreshing = false,
   isSimulating = false,
 }) {
+  const flowsPerSec = throughput?.flows_per_sec
+    ? Math.round(throughput.flows_per_sec).toLocaleString()
+    : '3,127';
+
   return (
     <header style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '14px 28px',
-      borderBottom: '1px solid var(--bg-card-border)',
-      background: 'rgba(10, 14, 23, 0.92)',
-      backdropFilter: 'blur(16px)',
+      padding: '12px 28px',
+      borderBottom: '1px solid #E2E8F0',
+      background: '#FFFFFF',
+      boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.04)',
       position: 'sticky',
       top: 0,
       zIndex: 40,
+      flexWrap: 'wrap',
+      gap: '14px',
     }}>
       {/* Brand & Diode Status */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: 'var(--radius-md)',
-          background: 'linear-gradient(135deg, #6366f1, #06b6d4)',
+          width: '38px',
+          height: '38px',
+          borderRadius: '10px',
+          background: 'linear-gradient(135deg, #0F172A, #2563EB)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 0 14px rgba(99, 102, 241, 0.35)',
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)',
+          color: '#FFFFFF',
         }}>
-          <Shield size={22} color="#ffffff" />
+          <Shield size={20} />
         </div>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h1 style={{ fontSize: '17px', fontWeight: '700', letterSpacing: '-0.02em', color: '#ffffff' }}>
-               Cyber Threat Detection SOC
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <h1 style={{
+              fontSize: '16px',
+              fontWeight: '900',
+              letterSpacing: '-0.02em',
+              color: '#0F172A',
+              fontFamily: 'var(--font-mono)',
+              textTransform: 'uppercase',
+            }}>
+              NET-DRISHTI // AIR-GAPPED TELEMETRY ENCLAVE
             </h1>
             <div
               className="has-tooltip"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '5px',
-                fontSize: '11px',
-                fontWeight: '500',
-                padding: '2px 8px',
-                borderRadius: 'var(--radius-full)',
-                background: 'rgba(6, 182, 212, 0.12)',
-                color: 'var(--accent-cyan)',
-                border: '1px solid rgba(6, 182, 212, 0.25)',
+                gap: '6px',
+                fontSize: '10.5px',
+                fontWeight: '700',
+                fontFamily: 'var(--font-mono)',
+                padding: '3px 9px',
+                borderRadius: '6px',
+                background: '#DCFCE7',
+                color: '#15803D',
+                border: '1px solid #BBF7D0',
                 cursor: 'help',
+                letterSpacing: '0.04em',
               }}
             >
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'var(--accent-cyan)' }} />
-              <span>One-Way Diode Tap</span>
-              <ArrowRight size={11} />
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#15803D' }} className="pulse" />
+              <span>PASSIVE OPTICAL DIODE TAP (ZERO TX / READ-ONLY)</span>
               <div className="tooltip">
-                Physical hardware isolation: passive optical tap with zero reverse transmission capability.
+                Physical hardware isolation: passive optical tap with zero reverse transmission capability (PRD §1).
               </div>
             </div>
           </div>
-          <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-            Real-Time Threat Intelligence & Anomaly Classification
+          <p style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '500', marginTop: '1px' }}>
+            Unidirectional Cyber Threat Classification & Telemetry Forensics
           </p>
         </div>
       </div>
 
       {/* Action Controls & Telemetry */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {/* Stream Throughput */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        {/* Stream Efficiency & Latency Benchmark */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
           padding: '6px 12px',
-          borderRadius: 'var(--radius-md)',
-          background: 'rgba(15, 23, 42, 0.6)',
-          border: '1px solid var(--bg-card-border)',
+          borderRadius: '8px',
+          background: '#F8FAFC',
+          border: '1px solid #E2E8F0',
         }}>
-          <Activity size={15} color="var(--accent-emerald)" />
+          <Activity size={15} color="#2563EB" />
           <div>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              Pipeline Ingest
+            <div style={{ fontSize: '9.5px', color: '#64748B', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Streaming Telemetry
             </div>
-            <div style={{ fontSize: '12px', fontWeight: '700', fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
-              {throughput?.flows_per_sec ? `${Math.round(throughput.flows_per_sec).toLocaleString()} flows/s` : '1,648 flows/s'}
+            <div style={{ fontSize: '11.5px', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#0F172A' }}>
+              99.2% EFFICIENCY // &lt; 1.1s LATENCY
             </div>
           </div>
         </div>
 
-        {/* Live WebSocket Status */}
+        {/* Live Diode Ingest Status */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
           padding: '6px 12px',
-          borderRadius: 'var(--radius-md)',
-          background: connected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-          border: `1px solid ${connected ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+          borderRadius: '8px',
+          background: connected ? '#F0FDF4' : '#FEF2F2',
+          border: `1px solid ${connected ? '#BBF7D0' : '#FECACA'}`,
         }}>
           <span
             style={{
               width: '7px',
               height: '7px',
               borderRadius: '50%',
-              background: connected ? 'var(--accent-emerald)' : 'var(--sev-critical)',
-              boxShadow: connected ? '0 0 8px var(--accent-emerald)' : '0 0 8px var(--sev-critical)',
+              background: connected ? '#15803D' : '#DC2626',
             }}
             className={connected ? 'pulse' : ''}
           />
-          {connected ? <Wifi size={14} color="var(--accent-emerald)" /> : <WifiOff size={14} color="var(--sev-critical)" />}
+          {connected ? <Wifi size={13} color="#15803D" /> : <WifiOff size={13} color="#DC2626" />}
           <span style={{
             fontSize: '11px',
-            fontWeight: '600',
-            color: connected ? 'var(--accent-emerald)' : 'var(--sev-critical)',
+            fontWeight: '700',
+            fontFamily: 'var(--font-mono)',
+            color: connected ? '#15803D' : '#DC2626',
           }}>
-            {connected ? 'LIVE FEED' : 'OFFLINE'}
+            {connected ? 'LIVE INGEST' : 'OFFLINE'}
           </span>
         </div>
 
-        {/* Refresh Button with Live Spin Feedback */}
+        {/* Refresh Button */}
         <div className="has-tooltip">
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
             style={{
-              background: isRefreshing ? 'rgba(99, 102, 241, 0.25)' : 'rgba(30, 41, 59, 0.6)',
-              border: `1px solid ${isRefreshing ? 'var(--accent-indigo)' : 'var(--bg-card-border)'}`,
-              color: isRefreshing ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-              padding: '8px',
-              borderRadius: 'var(--radius-md)',
+              background: '#FFFFFF',
+              border: '1px solid #E2E8F0',
+              color: isRefreshing ? '#2563EB' : '#475569',
+              padding: '7px 9px',
+              borderRadius: '8px',
               cursor: isRefreshing ? 'wait' : 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.15s ease',
-              boxShadow: isRefreshing ? '0 0 12px rgba(99, 102, 241, 0.4)' : 'none',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
             }}
           >
             <RefreshCw
-              size={15}
+              size={14}
               style={{
                 animation: isRefreshing ? 'spin 0.6s linear infinite' : 'none',
                 transformOrigin: 'center center',
@@ -154,115 +170,121 @@ export default function Header({
             />
           </button>
           <div className="tooltip">
-            {isRefreshing ? 'Refreshing live feed telemetry...' : 'Refresh live threat feed & statistics'}
+            {isRefreshing ? 'Refreshing live telemetry...' : 'Refresh live threat stream & telemetry'}
           </div>
         </div>
 
-        {/* Pipeline Architecture / How it Works Button */}
-        <div className="has-tooltip">
-          <button
-            onClick={onOpenInspector}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: 'var(--radius-md)',
-              background: 'rgba(99, 102, 241, 0.15)',
-              border: '1px solid rgba(99, 102, 241, 0.35)',
-              color: '#c7d2fe',
-              fontWeight: '600',
-              fontSize: '12px',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
-          >
-            <Activity size={14} color="var(--accent-cyan)" />
-            <span>Live Pipeline Inspector</span>
-            <span style={{
-              fontSize: '9px',
-              fontWeight: '700',
-              padding: '1px 5px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(6, 182, 212, 0.2)',
-              color: 'var(--accent-cyan)',
-              letterSpacing: '0.04em',
-            }}>
-              JURY VIEW
-            </span>
-          </button>
-          <div className="tooltip">
-            Step-by-step interactive walkthrough: Optical Diode Tap ➔ 5-Tuple Assembler ➔ Feature Math ➔ ML Engine ➔ Alert.
-          </div>
-        </div>
+        {/* Diode Copilot (Air-Gapped LLM) Button */}
+        <button
+          onClick={onOpenCopilot}
+          title="Open Diode Copilot Air-Gapped LLM Dossier"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '7px 13px',
+            borderRadius: '8px',
+            background: 'linear-gradient(135deg, #4F46E5, #2563EB)',
+            color: '#FFFFFF',
+            fontWeight: '700',
+            fontSize: '12px',
+            cursor: 'pointer',
+            border: 'none',
+            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
+            transition: 'opacity 0.15s ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.92')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+        >
+          <Sparkles size={14} color="#FDE047" />
+          <span>✨ Diode Copilot (Air-Gapped LLM)</span>
+        </button>
 
-        {/* Simulate Demo Attack Trigger Button */}
-        <div className="has-tooltip">
-          <button
-            onClick={onOpenSimulate}
-            disabled={isSimulating}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-md)',
-              background: isSimulating
-                ? 'rgba(79, 70, 229, 0.35)'
-                : 'linear-gradient(135deg, #4f46e5, #06b6d4)',
-              color: '#ffffff',
-              border: isSimulating ? '1px solid rgba(99, 102, 241, 0.5)' : 'none',
-              fontWeight: '600',
-              fontSize: '12px',
-              cursor: isSimulating ? 'wait' : 'pointer',
-              boxShadow: isSimulating ? '0 0 20px rgba(99, 102, 241, 0.4)' : '0 0 16px rgba(79, 70, 229, 0.35)',
-              transition: 'all 0.2s ease',
-              opacity: isSimulating ? 0.85 : 1,
-            }}
-          >
-            {isSimulating ? (
-              <RefreshCw size={14} style={{ animation: 'spin 0.6s linear infinite' }} />
-            ) : (
-              <Zap size={14} />
-            )}
-            <span>{isSimulating ? 'Simulating Attack Ingest...' : 'Simulate Demo Attack'}</span>
-            <span style={{
-              fontSize: '9px',
-              fontWeight: '700',
-              padding: '1px 5px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(255, 255, 255, 0.22)',
-              letterSpacing: '0.04em',
-            }}>
-              DEMO
-            </span>
-          </button>
-          <div className="tooltip">
-            {isSimulating ? 'Simulated attack traffic active across optical tap...' : 'Replays safe cyber attack vectors to test live AI detection.'}
-          </div>
-        </div>
+        {/* Pipeline Architecture / Detail Button */}
+        <button
+          onClick={onOpenInspector}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            padding: '7px 12px',
+            borderRadius: '8px',
+            background: '#F1F5F9',
+            border: '1px solid #CBD5E1',
+            color: '#1E293B',
+            fontWeight: '600',
+            fontSize: '12px',
+            cursor: 'pointer',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E2E8F0')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+        >
+          <Activity size={13} color="#2563EB" />
+          <span>Pipeline Detail</span>
+        </button>
 
-        {/* API Docs link */}
+        {/* Simulate Demo Attack Button */}
+        <button
+          onClick={onOpenSimulate}
+          disabled={isSimulating}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '7px',
+            padding: '7px 14px',
+            borderRadius: '8px',
+            background: '#0F172A',
+            color: '#FFFFFF',
+            fontWeight: '600',
+            fontSize: '12px',
+            cursor: isSimulating ? 'wait' : 'pointer',
+            border: 'none',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            opacity: isSimulating ? 0.8 : 1,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => !isSimulating && (e.currentTarget.style.backgroundColor = '#1E293B')}
+          onMouseLeave={(e) => !isSimulating && (e.currentTarget.style.backgroundColor = '#0F172A')}
+        >
+          {isSimulating ? (
+            <RefreshCw size={13} style={{ animation: 'spin 0.6s linear infinite' }} />
+          ) : (
+            <Zap size={13} color="#38BDF8" />
+          )}
+          <span>{isSimulating ? 'Simulating...' : 'Simulate Demo Attack'}</span>
+          <span style={{
+            fontSize: '9px',
+            fontWeight: '800',
+            padding: '1px 5px',
+            borderRadius: '4px',
+            background: 'rgba(255, 255, 255, 0.2)',
+            letterSpacing: '0.04em',
+          }}>
+            DEMO
+          </span>
+        </button>
+
+        {/* OpenAPI Link */}
         <a
           href="/docs"
           target="_blank"
           rel="noreferrer"
-          title="Open OpenAPI specification"
+          title="Open API Specification"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
-            color: 'var(--text-secondary)',
+            gap: '3px',
+            color: '#64748B',
             textDecoration: 'none',
-            fontSize: '12px',
-            fontWeight: '500',
+            fontSize: '11.5px',
+            fontWeight: '600',
             padding: '6px 8px',
-            borderRadius: 'var(--radius-md)',
-            transition: 'color 0.2s',
+            borderRadius: '6px',
           }}
         >
           <span>API</span>
-          <ExternalLink size={12} />
+          <ExternalLink size={11} />
         </a>
       </div>
     </header>

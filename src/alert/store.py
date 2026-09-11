@@ -136,7 +136,40 @@ class AlertStore:
                 ],
             )
             conn.commit()
+            if len(alerts) > 0:
+                conn.execute(
+                    """
+                    DELETE FROM alerts
+                    WHERE alert_id NOT IN (
+                        SELECT alert_id FROM alerts
+                        ORDER BY timestamp DESC
+                        LIMIT 200
+                    )
+                    """
+                )
+                conn.commit()
             return len(alerts)
+        finally:
+            conn.close()
+
+    def prune_stale(self, keep_limit: int = 200) -> int:
+        """Keep the database responsive and aligned with the latest alert telemetry."""
+        conn = self._get_conn()
+        try:
+            cursor = conn.execute(
+                """
+                DELETE FROM alerts
+                WHERE alert_id NOT IN (
+                    SELECT alert_id FROM alerts
+                    ORDER BY timestamp DESC
+                    LIMIT ?
+                )
+                """,
+                (keep_limit,),
+            )
+            deleted = cursor.rowcount
+            conn.commit()
+            return max(0, deleted)
         finally:
             conn.close()
 

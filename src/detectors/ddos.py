@@ -76,9 +76,8 @@ class DDoSDetector(BaseDetector):
         # --- Feature 1: Flow rate (window-level) ---
         if window_features.flow_rate_per_sec > config.DDOS_FLOW_RATE_THRESHOLD:
             triggered.append("high_flow_rate")
-            # Score proportional to how much it exceeds threshold
             ratio = window_features.flow_rate_per_sec / config.DDOS_FLOW_RATE_THRESHOLD
-            score += min(ratio / 5.0, 0.35)  # Max contribution: 0.35
+            score += min(0.30 + (ratio - 1.0) * 0.10, 0.50)
             stats["flow_rate_per_sec"] = round(window_features.flow_rate_per_sec, 2)
             stats["flow_rate_threshold"] = config.DDOS_FLOW_RATE_THRESHOLD
 
