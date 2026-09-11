@@ -1,47 +1,91 @@
-# System Architecture
+# System Architecture & Technical Specification
 
-## Overview
+## 1. Architectural Overview
 
-The SIH Cyber Threat Detection System is a high-throughput, streaming pipeline designed to ingest simulated unidirectional IP traffic (such as from a hardware data diode or passive network tap), extract per-flow statistical and behavioral features, classify threats across 6 distinct categories, and emit standardized, evidenced alerts to a live web dashboard.
+The SIH Cyber Threat Detection System is a streaming security pipeline tailored for **unidirectional networks** (optical data diodes / passive network taps). It ingests one-way IP packet streams, reconstructs bidirectional flow state estimates from unidirectional metadata, extracts statistical and signal-processing features across sliding windows, classifies threats using 6 dedicated detection engines, and broadcasts standardized alerts over WebSockets to a React-powered Security Operations Center (SOC) dashboard.
 
 ```mermaid
 flowchart TD
-    subgraph Traffic["Traffic Ingestion (Read-Only)"]
-        GEN[Traffic Generators / PCAP Source] -->|Simulated Diode Tap| RDR[PCAP / Stream Reader]
-        RDR --> FA[Flow Assembler (5-Tuple + State)]
+    subgraph DataDiode["Physical Diode Enclave (Simulated)"]
+        direction LR
+        EXT_NET["External Network / Threat Actors"] -->|Raw IP Packets| TAP["Unidirectional Optical Tap"]
+        TAP -->|RX Fiber Only| INGEST["Ingest Engine (Zero TX)"]
     end
 
-    subgraph FeaturePipeline["Feature Extraction (Sliding Windows)"]
-        FA --> EXT[Feature Extractor]
-        EXT --> ENT[Entropy Engine (IPs, Domains)]
-        EXT --> PER[Periodicity Engine (FFT, Autocorr)]
-        EXT --> STAT[Statistical Metrics (Fan-out, Asymmetry)]
+    subgraph CorePipeline["Streaming Detection Pipeline"]
+        direction TB
+        INGEST --> FLOW["Flow Assembler (5-Tuple Tracking)"]
+        FLOW --> WIN["Sliding Window Aggregator (10s window, 5s overlap)"]
+        WIN --> FEAT["Feature Extraction Engine"]
+        
+        subgraph Detectors["Multi-Threat Engines"]
+            D1["1. DDoS Detector (Entropy + Arrival Rate)"]
+            D2["2. Recon Scan Detector (Fan-out Cardinality)"]
+            D3["3. C2 Beaconing Detector (FFT + Autocorrelation)"]
+            D4["4. DGA / DNS Tunnel Detector (Bigram N-Gram)"]
+            D5["5. Encrypted Malware (JA3 Fingerprinting)"]
+            D6["6. Data Exfiltration (Byte-Ratio Asymmetry)"]
+        end
+        
+        FEAT --> D1 & D2 & D3 & D4 & D5 & D6
+        D1 & D2 & D3 & D4 & D5 & D6 --> NORM["Alert Schema Normalizer (PRD §6)"]
+        NORM --> STORE[("Alert Store (SQLite WAL / Postgres)")]
     end
 
-    subgraph Detectors["Per-Threat Detection Engines"]
-        EXT --> D1[DDoS Detector]
-        EXT --> D2[Recon & Scan Detector]
-        EXT --> D3[Botnet C2 Beaconing Detector]
-        EXT --> D4[DGA & DNS Tunnel Detector]
-        EXT --> D5[Encrypted Malware Classifier]
-        EXT --> D6[Data Exfiltration Detector]
-    end
-
-    subgraph Alerting["Alert Normalization & Storage"]
-        D1 & D2 & D3 & D4 & D5 & D6 --> NORM[Alert Schema Normalizer]
-        NORM --> STORE[(SQLite / Postgres Alert Store)]
-    end
-
-    subgraph Presentation["API & Live Dashboard"]
-        STORE --> API[FastAPI Server]
-        API -->|WebSocket Stream| DASH[Web Dashboard (Chart.js & Live Feed)]
-        API -->|REST Query / Filtering| DASH
+    subgraph Presentation["SOC Intelligence & API Layer"]
+        STORE --> API["FastAPI Backend Server"]
+        SIM["Attack Simulator Engine (/api/simulate)"] --> API
+        API -->|WebSocket Stream (ws://)| REACT["React + Vite SOC Dashboard"]
+        API -->|REST API (/api/alerts, /api/stats)| REACT
     end
 ```
 
-## Architectural Isolation (rules.md R1)
+---
 
-Per problem constraints, the ingestion engine operates behind a simulated data diode:
-1. **No Outbound Network Sockets**: The `src/ingest` module contains no socket client or HTTP client libraries.
-2. **Read-Only Data Flow**: Traffic is read strictly in a unidirectional manner; no responses, ACKs, or handshakes are ever generated towards the source.
-3. **AST-Enforced Isolation**: An automated AST unit test (`tests/test_ingest_isolation.py`) continuously scans the ingest codebase to guarantee no outbound networking capabilities are introduced.
+## 2. Ingestion & Data Diode Isolation (rules.md R1)
+
+In critical infrastructure and defense deployments, data diodes physically forbid packet transmission from the monitoring enclave back to the production network.
+
+### Architectural Guarantees
+1. **Zero Outbound Sockets:** The `src/ingest` module contains strictly read-only file/socket readers. No TCP handshake can ever be initiated back to source IP addresses.
+2. **Read-Only Ingestion:** The reader parses Ethernet/IP headers, TCP/UDP ports, sequence numbers, and DNS payload lengths without ever transmitting ACKs or control frames.
+3. **AST-Enforced Verification:** An automated unit test (`tests/test_ingest_isolation.py`) parses the Abstract Syntax Tree (AST) of the ingestion modules to ensure no network client libraries (`urllib`, `requests`, `http.client`, or client socket calls) are imported or invoked.
+
+---
+
+## 3. Sliding Window Feature Extraction
+
+The pipeline partitions flows into temporal sliding windows (default: **10.0 seconds** duration with **5.0 seconds** overlap):
+
+- **Entropy Engine (`src/features/entropy.py`):**
+  - Calculates Shannon entropy over source IP addresses:
+    $$H(X) = -\sum_{i=1}^{n} P(x_i) \log_2 P(x_i)$$
+  - Calculates character-level entropy and English bigram log-likelihood on DNS queries to catch algorithmically generated domains (DGA).
+- **Periodicity Engine (`src/features/periodicity.py`):**
+  - Computes Fast Fourier Transform (FFT) spectral density across inter-arrival times to identify regular botnet C2 heartbeats.
+  - Computes normalized autocorrelation coefficients to differentiate periodic beacons from human jitter.
+- **Statistical Flow Metrics (`src/features/extractor.py`):**
+  - Distinct destination port fan-out per source IP.
+  - Distinct host fan-out per destination port.
+  - Outbound-to-inbound byte transfer ratios.
+
+---
+
+## 4. Alert Normalization & Persistence
+
+Every alert emitted by the detectors is strictly validated through Pydantic models against the **PRD §6 standardized schema**:
+- Unique UUIDv4 identifier.
+- Canonical 5-tuple flow key (`src_ip:src_port-dst_ip:dst_port-proto`).
+- Confidence score bounded between `[0.0, 1.0]`.
+- Four-tier severity enumeration (`low`, `medium`, `high`, `critical`).
+- Evidence payload containing both heuristic names and quantitative supporting statistics for full explainability.
+
+---
+
+## 5. React + Vite SOC Frontend
+
+Located in `frontend/`, built with modern React 18, Vite, Lucide icons, and Chart.js:
+- **Real-Time Feed:** Connected via persistent WebSocket (`/ws`) with automatic exponential-backoff reconnection and fallback REST polling.
+- **Visual Analytics:** Interactive Chart.js doughnut chart for threat distribution, severity bar distribution, and temporal alert volume timeline.
+- **Forensics Drawer:** Deep drill-down inspection for SOC analysts showing exact Shannon entropy, FFT frequencies, and JSON payload export.
+- **Interactive Attack Injection:** Allows operators to trigger synthetic attack scenarios on demand via `POST /api/simulate`.

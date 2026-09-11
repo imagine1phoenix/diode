@@ -4,9 +4,10 @@
   "description": "AI-Based Detection of Cyber Threats in Unidirectional IP Traffic",
   "main": "main.py",
   "scripts": {
-    "build": "node -e \"const fs = require('fs'); const path = require('path'); const vendorDir = path.join('dashboard', 'vendor'); if (!fs.existsSync(vendorDir)) fs.mkdirSync(vendorDir, { recursive: true }); const chartSrc = path.join('node_modules', 'chart.js', 'dist', 'chart.umd.js'); if (fs.existsSync(chartSrc)) { fs.copyFileSync(chartSrc, path.join(vendorDir, 'chart.umd.js')); console.log('  Vendor: copied Chart.js to dashboard/vendor/chart.umd.js'); } const files = ['dashboard/index.html', 'dashboard/style.css', 'dashboard/app.js']; files.forEach(f => { if (!fs.existsSync(f)) throw new Error('Missing ' + f); console.log('  Verified: ' + f + ' (' + fs.statSync(f).size + ' bytes)'); }); console.log('Build completed successfully.');\"",
-    "start": "python3 main.py --serve",
+    "build": "cd frontend && npm run build",
+    "dev:frontend": "cd frontend && npm run dev",
     "dev": "python3 main.py",
+    "start": "python3 main.py --serve",
     "test": "npm run build && python3 -m unittest discover -s tests -p 'test_*.py'"
   },
   "keywords": [
@@ -14,7 +15,8 @@
     "cyber-threat-detection",
     "unidirectional-traffic",
     "fastapi",
-    "chartjs"
+    "react",
+    "vite"
   ],
   "author": "SIH Team",
   "license": "MIT",

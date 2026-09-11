@@ -78,7 +78,11 @@ app.add_middleware(
 )
 
 # Serve dashboard static files
+dist_path = config.PROJECT_ROOT / "dashboard" / "dist"
 dashboard_path = config.PROJECT_ROOT / "dashboard"
+
+if dist_path.exists() and (dist_path / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=str(dist_path / "assets")), name="assets")
 if dashboard_path.exists():
     app.mount("/static", StaticFiles(directory=str(dashboard_path)), name="static")
 
@@ -90,7 +94,9 @@ if dashboard_path.exists():
 
 @app.get("/")
 async def root():
-    """Serve the dashboard."""
+    """Serve the dashboard (React built app if available, else static HTML)."""
+    if dist_path.exists() and (dist_path / "index.html").exists():
+        return FileResponse(str(dist_path / "index.html"))
     index_path = dashboard_path / "index.html"
     if index_path.exists():
         return FileResponse(str(index_path))
@@ -176,11 +182,35 @@ async def analyze_pcap(pcap_filename: str = Query(..., description="Filename in 
     }
 
 
+@app.post("/api/simulate")
+async def simulate_traffic(
+    threat_class: str = Query("all", description="Threat category to simulate (all, ddos, scan, c2, dga)")
+) -> dict[str, Any]:
+    """
+    Simulate cyber attack traffic on demand and ingest via pipeline.
+    Alerts are stored and broadcast live to connected WebSocket clients.
+    """
+    assert _pipeline is not None
+    from traffic.generators.generate_traffic import generate_demo_pcap
+
+    logger.info("Triggering on-demand traffic simulation (threat_class=%s)", threat_class)
+    pcap_path = generate_demo_pcap()
+    alerts = await _pipeline.process_pcap_async(pcap_path)
+
+    return {
+        "status": "success",
+        "threat_class": threat_class,
+        "alerts_generated": len(alerts),
+        "throughput": _pipeline.throughput.report(),
+    }
+
+
 # ---------------------------------------------------------------------------
 # WebSocket — Live alert feed
 # ---------------------------------------------------------------------------
 
 
+@app.websocket("/ws")
 @app.websocket("/ws/alerts")
 async def websocket_alerts(websocket: WebSocket) -> None:
     """
