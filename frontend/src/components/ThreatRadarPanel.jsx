@@ -35,7 +35,7 @@ export default function ThreatRadarPanel({ stats = {}, timeline = [], alerts = [
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <BarChart3 size={16} color="#2563EB" />
-          <h2 style={{ fontSize: '14px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.01em', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
+          <h2 style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.01em', fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
             Telemetry & Pattern Radar
           </h2>
         </div>

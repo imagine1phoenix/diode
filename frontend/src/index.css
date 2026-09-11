@@ -4,9 +4,11 @@
   --bg-surface: #FFFFFF;
   --bg-surface-hover: #F8FAFC;
   --bg-card: #FFFFFF;          /* Pure white card backgrounds */
+  --bg-card-hover: #F8FAFC;
   --bg-card-border: #E2E8F0;   /* Light card borders */
   --bg-card-border-glow: rgba(37, 99, 235, 0.2);
   --border-subtle: #E2E8F0;
+  --border-input: #CBD5E1;
 
   --text-primary: #0F172A;     /* Deep Slate 900 typography */
   --text-secondary: #64748B;   /* Muted Slate 500 subtext */
@@ -65,6 +67,76 @@
   --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.12);
 }
 
+/* ==========================================================================
+   Dark Mode Theme Tokens (Obsidian / High-Contrast Tactical Cyber Enclave)
+   ========================================================================== */
+[data-theme="dark"],
+html.dark,
+body.dark {
+  --bg-main: #0B0F19;          /* Deep cyber obsidian canvas */
+  --bg-primary: #0B0F19;
+  --bg-surface: #111827;        /* Slate 900 tactical surface */
+  --bg-surface-hover: #1F2937;  /* Slate 800 hover */
+  --bg-card: #111827;          /* Pure cyber dark card */
+  --bg-card-hover: #1A2438;
+  --bg-card-border: #1F2937;   /* Slate 800 card border */
+  --bg-card-border-glow: rgba(56, 189, 248, 0.25);
+  --border-subtle: #1F2937;
+  --border-input: #374151;
+
+  --text-primary: #F9FAFB;     /* Slate 50 bright typography */
+  --text-secondary: #9CA3AF;   /* Slate 400 crisp subtext */
+  --text-muted: #6B7280;       /* Slate 500 muted text */
+
+  --accent-blue: #3B82F6;      /* Vivid Cyber Blue */
+  --accent-cyan: #38BDF8;      /* Cyber Cyan */
+  --accent-indigo: #818CF8;
+  --accent-purple: #C084FC;
+  --accent-emerald: #34D399;
+
+  /* Status Accent Badges in Dark Mode (High-contrast glow) */
+  --critical-bg: rgba(220, 38, 38, 0.2);
+  --critical-text: #FCA5A5;
+  --critical-border: rgba(239, 68, 68, 0.4);
+
+  --high-bg: rgba(217, 119, 6, 0.2);
+  --high-text: #FDE68A;
+  --high-border: rgba(245, 158, 11, 0.4);
+
+  --medium-bg: rgba(202, 138, 4, 0.2);
+  --medium-text: #FEF08A;
+  --medium-border: rgba(234, 179, 8, 0.4);
+
+  --low-bg: rgba(2, 132, 199, 0.2);
+  --low-text: #7DD3FC;
+  --low-border: rgba(14, 165, 233, 0.4);
+
+  --live-bg: rgba(21, 128, 61, 0.2);
+  --live-text: #86EFAC;
+  --live-border: rgba(34, 197, 94, 0.4);
+
+  --sev-critical: #EF4444;
+  --sev-critical-bg: rgba(239, 68, 68, 0.18);
+  --sev-critical-border: rgba(239, 68, 68, 0.4);
+
+  --sev-high: #F97316;
+  --sev-high-bg: rgba(249, 115, 22, 0.18);
+  --sev-high-border: rgba(249, 115, 22, 0.4);
+
+  --sev-medium: #FBBF24;
+  --sev-medium-bg: rgba(251, 191, 36, 0.18);
+  --sev-medium-border: rgba(251, 191, 36, 0.4);
+
+  --sev-low: #38BDF8;
+  --sev-low-bg: rgba(56, 189, 248, 0.18);
+  --sev-low-border: rgba(56, 189, 248, 0.4);
+
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+  --shadow-glow: 0 0 25px rgba(56, 189, 248, 0.18);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -74,28 +146,37 @@
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-main);
-  background-image: 
-    radial-gradient(#CBD5E1 1px, transparent 1px);
+  background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
   background-size: 24px 24px;
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Tactical White Card */
+[data-theme="dark"] body,
+html[data-theme="dark"] body,
+body.dark {
+  background-color: var(--bg-main);
+  background-image: radial-gradient(#1E293B 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--text-primary);
+}
+
+/* Tactical White / Obsidian Card */
 .glass-panel,
 .tactical-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .glass-panel:hover,
 .tactical-card:hover {
-  border-color: #CBD5E1;
+  border-color: var(--bg-card-border-glow);
   box-shadow: var(--shadow-md);
 }
 
@@ -113,6 +194,19 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track,
+.dark ::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb,
+.dark ::-webkit-scrollbar-thumb {
+  background: #1F2937;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover,
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #374151;
 }
 
 /* Code / Monospace */
@@ -190,4 +284,26 @@ body {
   .soc-grid {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* ==========================================================================
+   Dark Mode Component Defaults & Surface Overrides
+   ========================================================================== */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-input) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] select::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] ::selection {
+  background: rgba(59, 130, 246, 0.35);
+  color: #FFFFFF;
 }

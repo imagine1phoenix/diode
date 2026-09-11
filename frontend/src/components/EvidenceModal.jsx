@@ -67,10 +67,10 @@ export default function EvidenceModal({ alert, onClose }) {
           maxHeight: '85vh',
           overflowY: 'auto',
           padding: '26px',
-          background: '#FFFFFF',
+          background: 'var(--bg-card)',
           borderRadius: '16px',
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.15)',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.35)',
           position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -82,9 +82,9 @@ export default function EvidenceModal({ alert, onClose }) {
             position: 'absolute',
             top: '18px',
             right: '18px',
-            background: '#F1F5F9',
+            background: 'var(--bg-surface-hover)',
             border: 'none',
-            color: '#64748B',
+            color: 'var(--text-secondary)',
             borderRadius: '50%',
             width: '28px',
             height: '28px',
@@ -103,8 +103,8 @@ export default function EvidenceModal({ alert, onClose }) {
             width: '42px',
             height: '42px',
             borderRadius: '10px',
-            background: '#FEE2E2',
-            border: '1px solid #FECACA',
+            background: 'var(--critical-bg)',
+            border: '1px solid var(--critical-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -112,10 +112,10 @@ export default function EvidenceModal({ alert, onClose }) {
             <ShieldAlert size={22} color="#DC2626" />
           </div>
           <div>
-            <h2 style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.01em' }}>
+            <h2 style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
               Incident Forensics & Telemetry Evidence
             </h2>
-            <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#64748B' }}>
+            <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
               Event ID: {alert.alert_id}
             </div>
           </div>
@@ -128,12 +128,12 @@ export default function EvidenceModal({ alert, onClose }) {
           gap: '10px',
           marginBottom: '18px',
         }}>
-          <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600' }}>Threat Category</div>
+          <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '600' }}>Threat Category</div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: threatMeta.color }}>{threatMeta.label}</div>
           </div>
-          <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600' }}>Severity Tier</div>
+          <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '600' }}>Severity Tier</div>
             <div style={{
               fontSize: '13px',
               fontWeight: '800',
@@ -143,41 +143,41 @@ export default function EvidenceModal({ alert, onClose }) {
               {alert.severity}
             </div>
           </div>
-          <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600' }}>Model Confidence</div>
+          <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '600' }}>Model Confidence</div>
             <div style={{ fontSize: '13px', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#2563EB' }}>
               {Math.round((alert.confidence || 0) * 100)}%
             </div>
           </div>
-          <div style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-            <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600' }}>Ingest Time</div>
-            <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#0F172A', fontWeight: '600' }}>
+          <div style={{ background: 'var(--bg-surface)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', fontWeight: '600' }}>Ingest Time</div>
+            <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-primary)', fontWeight: '600' }}>
               {new Date(alert.timestamp).toLocaleTimeString()}
             </div>
           </div>
         </div>
 
         {/* Network Connection Path */}
-        <div style={{ background: '#F8FAFC', padding: '12px 14px', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '18px' }}>
-          <div style={{ fontSize: '10px', color: '#64748B', textTransform: 'uppercase', marginBottom: '4px', fontWeight: '700' }}>
+        <div style={{ background: 'var(--bg-surface)', padding: '12px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)', marginBottom: '18px' }}>
+          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: '4px', fontWeight: '700' }}>
             Unidirectional Optical Tap Flow Record
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#0F172A', fontWeight: '700' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--text-primary)', fontWeight: '700' }}>
             {alert.flow_id}
           </div>
         </div>
 
         {/* Features Triggered */}
         <div style={{ marginBottom: '18px' }}>
-          <div style={{ fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
             Activated Detection Heuristics
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {triggered.map((feat, i) => (
               <span key={i} style={{
-                background: '#EEF2FF',
-                color: '#4338CA',
-                border: '1px solid #C7D2FE',
+                background: 'rgba(99, 102, 241, 0.15)',
+                color: 'var(--accent-indigo)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
                 padding: '3px 8px',
                 borderRadius: '6px',
                 fontSize: '11px',
@@ -192,18 +192,18 @@ export default function EvidenceModal({ alert, onClose }) {
 
         {/* Supporting Statistics Table */}
         <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '11px', fontWeight: '700', color: '#475569', marginBottom: '6px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '6px', textTransform: 'uppercase' }}>
             Telemetry Measurements & Metrics
           </div>
-          <div style={{ background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border-subtle)', overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
               <tbody>
                 {Object.entries(stats).map(([k, v], idx) => (
-                  <tr key={k} style={{ borderBottom: idx !== Object.keys(stats).length - 1 ? '1px solid #E2E8F0' : 'none' }}>
-                    <td style={{ padding: '8px 12px', color: '#64748B', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: '600' }}>
+                  <tr key={k} style={{ borderBottom: idx !== Object.keys(stats).length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                    <td style={{ padding: '8px 12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: '600' }}>
                       {k.replace(/_/g, ' ')}
                     </td>
-                    <td style={{ padding: '8px 12px', color: '#0F172A', fontFamily: 'var(--font-mono)', fontWeight: '700', textAlign: 'right', fontSize: '11px' }}>
+                    <td style={{ padding: '8px 12px', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontWeight: '700', textAlign: 'right', fontSize: '11px' }}>
                       {typeof v === 'number' ? (Number.isInteger(v) ? v.toLocaleString() : v.toFixed(3)) : String(v)}
                     </td>
                   </tr>
@@ -216,14 +216,14 @@ export default function EvidenceModal({ alert, onClose }) {
         {/* Standardized JSON Record */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-            <div style={{ fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
               Standardized Threat JSON Record
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={handleDownloadDossier}
                 style={{
-                  background: '#0F172A',
+                  background: 'var(--accent-blue)',
                   border: 'none',
                   color: '#FFFFFF',
                   fontSize: '11px',
@@ -243,9 +243,9 @@ export default function EvidenceModal({ alert, onClose }) {
               <button
                 onClick={handleCopyJson}
                 style={{
-                  background: '#F1F5F9',
-                  border: '1px solid #CBD5E1',
-                  color: '#0F172A',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-input)',
+                  color: 'var(--text-primary)',
                   fontSize: '11px',
                   fontWeight: '600',
                   padding: '4px 10px',

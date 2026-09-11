@@ -217,9 +217,9 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
           width: '100%',
           maxWidth: '620px',
           height: '100%',
-          background: '#FFFFFF',
-          borderLeft: '1px solid #CBD5E1',
-          boxShadow: '-10px 0 35px rgba(0, 0, 0, 0.12)',
+          background: 'var(--bg-card)',
+          borderLeft: '1px solid var(--border-subtle)',
+          boxShadow: '-10px 0 35px rgba(0, 0, 0, 0.4)',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
@@ -229,8 +229,8 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
         {/* Header Bar */}
         <div style={{
           padding: '20px 24px 16px',
-          borderBottom: '1px solid #E2E8F0',
-          background: '#F8FAFC',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface)',
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
@@ -251,7 +251,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '16px', fontWeight: '900', color: '#0F172A', fontFamily: 'var(--font-mono)', letterSpacing: '0.02em' }}>
+                <h2 style={{ fontSize: '16px', fontWeight: '900', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', letterSpacing: '0.02em' }}>
                   DIODE COPILOT // AIR-GAPPED SLM
                 </h2>
                 <span style={{
@@ -259,9 +259,9 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                   fontWeight: '800',
                   padding: '2px 8px',
                   borderRadius: '9999px',
-                  background: '#DCFCE7',
-                  color: '#15803D',
-                  border: '1px solid #BBF7D0',
+                  background: 'var(--live-bg)',
+                  color: 'var(--live-text)',
+                  border: '1px solid var(--live-border)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '4px',
@@ -270,7 +270,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                   READ-ONLY DIODE TAP
                 </span>
               </div>
-              <p style={{ fontSize: '11px', color: '#64748B', marginTop: '2px', fontWeight: '500' }}>
+              <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px', fontWeight: '500' }}>
                 On-Premise Small Language Model • Unidirectional Telemetry Inference (Zero External Egress)
               </p>
             </div>
@@ -281,7 +281,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#94A3B8',
+              color: 'var(--text-secondary)',
               cursor: 'pointer',
               padding: '6px',
               borderRadius: '6px',
@@ -298,8 +298,8 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
         {/* Model Sub-Bar & Tab Switcher */}
         <div style={{
           padding: '10px 24px',
-          borderBottom: '1px solid #E2E8F0',
-          background: '#FFFFFF',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -310,10 +310,11 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
           {/* Tabs */}
           <div style={{
             display: 'inline-flex',
-            background: '#F1F5F9',
+            background: 'var(--bg-card)',
             padding: '3px',
             borderRadius: '8px',
             gap: '3px',
+            border: '1px solid var(--border-subtle)',
           }}>
             <button
               onClick={() => setActiveTab('triage')}
@@ -324,12 +325,12 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                 padding: '5px 12px',
                 borderRadius: '6px',
                 border: 'none',
-                background: activeTab === 'triage' ? '#FFFFFF' : 'transparent',
-                color: activeTab === 'triage' ? '#0F172A' : '#64748B',
+                background: activeTab === 'triage' ? 'var(--bg-surface-hover)' : 'transparent',
+                color: activeTab === 'triage' ? 'var(--text-primary)' : 'var(--text-secondary)',
                 fontWeight: '700',
                 fontSize: '11px',
                 cursor: 'pointer',
-                boxShadow: activeTab === 'triage' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                boxShadow: activeTab === 'triage' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                 transition: 'all 0.15s',
               }}
             >
@@ -346,8 +347,8 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                 padding: '5px 12px',
                 borderRadius: '6px',
                 border: 'none',
-                background: activeTab === 'chat' ? '#2563EB' : 'transparent',
-                color: activeTab === 'chat' ? '#FFFFFF' : '#64748B',
+                background: activeTab === 'chat' ? 'var(--accent-blue)' : 'transparent',
+                color: activeTab === 'chat' ? '#FFFFFF' : 'var(--text-secondary)',
                 fontWeight: '700',
                 fontSize: '11px',
                 cursor: 'pointer',
@@ -361,8 +362,8 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                 fontSize: '9px',
                 padding: '1px 5px',
                 borderRadius: '4px',
-                background: activeTab === 'chat' ? 'rgba(255,255,255,0.25)' : '#E2E8F0',
-                color: activeTab === 'chat' ? '#FFFFFF' : '#475569',
+                background: activeTab === 'chat' ? 'rgba(255,255,255,0.25)' : 'var(--bg-surface-hover)',
+                color: activeTab === 'chat' ? '#FFFFFF' : 'var(--text-secondary)',
               }}>
                 SLM
               </span>
@@ -371,14 +372,14 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
 
           {/* Inference Latency Indicator */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-            <span style={{ color: '#64748B' }}>Inference:</span>
+            <span style={{ color: 'var(--text-secondary)' }}>Inference:</span>
             <span style={{
-              background: '#EFF6FF',
-              color: '#1D4ED8',
+              background: 'rgba(37, 99, 235, 0.15)',
+              color: 'var(--accent-blue)',
               padding: '2px 8px',
               borderRadius: '4px',
               fontWeight: '700',
-              border: '1px solid #DBEAFE',
+              border: '1px solid rgba(37, 99, 235, 0.3)',
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
@@ -398,22 +399,22 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
             display: 'flex',
             flexDirection: 'column',
             gap: '20px',
-            background: '#F8FAFC',
+            background: 'var(--bg-main)',
           }}>
             {/* Quick Actions Bar */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              background: '#FFFFFF',
+              background: 'var(--bg-card)',
               padding: '12px 16px',
               borderRadius: '12px',
-              border: '1px solid #E2E8F0',
+              border: '1px solid var(--border-subtle)',
               boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
             }}>
               <div>
-                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>Active Investigation:</span>
-                <div style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-mono)' }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600' }}>Active Investigation:</span>
+                <div style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
                   {alert.flow_id || alert.alert_id}
                 </div>
               </div>
@@ -427,13 +428,12 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                     gap: '5px',
                     padding: '6px 12px',
                     borderRadius: '8px',
-                    background: '#0F172A',
-                    color: '#FFFFFF',
-                    border: 'none',
+                    background: 'var(--bg-surface-hover)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-input)',
                     fontSize: '11px',
                     fontWeight: '700',
                     cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(15,23,42,0.15)',
                   }}
                 >
                   <Download size={13} />
@@ -451,7 +451,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                     gap: '5px',
                     padding: '6px 12px',
                     borderRadius: '8px',
-                    background: '#2563EB',
+                    background: 'var(--accent-blue)',
                     color: '#FFFFFF',
                     border: 'none',
                     fontSize: '11px',
@@ -466,32 +466,32 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
             </div>
 
             {loading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px', padding: '60px 0', color: '#64748B' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '14px', padding: '60px 0', color: 'var(--text-secondary)' }}>
                 <Sparkles size={32} className="pulse" color="#2563EB" />
                 <div style={{ fontSize: '13px', fontWeight: '600' }}>Running on-premise SLM telemetry evaluation...</div>
               </div>
             ) : triageData ? (
               <>
                 {/* MITRE ATT&CK Mapping Card */}
-                {mitre && (
+                {triageData?.mitre_mapping && (
                   <div style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #E2E8F0',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '12px',
                     padding: '16px',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '10px', color: '#4F46E5', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--accent-indigo)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         MITRE ATT&CK Matrix Alignment
                       </span>
                       <a
-                        href={mitre.url}
+                        href={triageData.mitre_mapping.url}
                         target="_blank"
                         rel="noreferrer"
                         style={{
                           fontSize: '11px',
-                          color: '#2563EB',
+                          color: 'var(--accent-blue)',
                           textDecoration: 'none',
                           display: 'flex',
                           alignItems: 'center',
@@ -508,19 +508,19 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                         fontSize: '12px',
                         fontWeight: '800',
                         fontFamily: 'var(--font-mono)',
-                        color: '#4338CA',
-                        background: '#EEF2FF',
+                        color: 'var(--accent-indigo)',
+                        background: 'rgba(99, 102, 241, 0.15)',
                         padding: '3px 8px',
                         borderRadius: '6px',
-                        border: '1px solid #C7D2FE',
+                        border: '1px solid rgba(99, 102, 241, 0.3)',
                       }}>
-                        {mitre.technique}
+                        {triageData.mitre_mapping.technique}
                       </span>
-                      <span style={{ fontSize: '13px', fontWeight: '700', color: '#0F172A' }}>
-                        {mitre.technique_name}
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                        {triageData.mitre_mapping.technique_name}
                       </span>
-                      <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '500' }}>
-                        • Tactic: {mitre.tactic} ({mitre.tactic_name})
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                        • Tactic: {triageData.mitre_mapping.tactic} ({triageData.mitre_mapping.tactic_name})
                       </span>
                     </div>
                   </div>
@@ -528,21 +528,21 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
 
                 {/* Executive Diagnosis */}
                 <div style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '12px',
                   padding: '18px',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                     <Sparkles size={16} color="#2563EB" />
-                    <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <h3 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Executive Incident Assessment
                     </h3>
                   </div>
                   <div style={{
                     fontSize: '13px',
-                    color: '#334155',
+                    color: 'var(--text-secondary)',
                     lineHeight: 1.6,
                     fontWeight: '500',
                   }}>
@@ -552,15 +552,15 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
 
                 {/* Forensic Signals */}
                 <div style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '12px',
                   padding: '18px',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                     <ShieldAlert size={16} color="#DC2626" />
-                    <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <h3 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Passive Optical Forensic Proof
                     </h3>
                   </div>
@@ -571,13 +571,13 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                         alignItems: 'flex-start',
                         gap: '10px',
                         fontSize: '12px',
-                        color: '#334155',
-                        background: '#F8FAFC',
+                        color: 'var(--text-secondary)',
+                        background: 'var(--bg-surface)',
                         padding: '10px 12px',
                         borderRadius: '8px',
-                        border: '1px solid #E2E8F0',
+                        border: '1px solid var(--border-subtle)',
                       }}>
-                        <span style={{ color: '#2563EB', fontWeight: '800', marginTop: '1px' }}>•</span>
+                        <span style={{ color: 'var(--accent-blue)', fontWeight: '800', marginTop: '1px' }}>•</span>
                         <span style={{ lineHeight: 1.5, fontWeight: '500' }}>{sig}</span>
                       </div>
                     ))}
@@ -586,8 +586,8 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
 
                 {/* Actionable Network Mitigation Playbook */}
                 <div style={{
-                  background: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '12px',
                   padding: '18px',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
@@ -595,7 +595,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Terminal size={16} color="#15803D" />
-                      <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <h3 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                         Peripheral Remediation Playbook (Manual Run)
                       </h3>
                     </div>
@@ -604,7 +604,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: copiedAll ? '#15803D' : '#64748B',
+                        color: copiedAll ? '#15803D' : 'var(--text-secondary)',
                         fontSize: '11px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -618,7 +618,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                     </button>
                   </div>
 
-                  <p style={{ fontSize: '11px', color: '#64748B', marginBottom: '12px' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
                     ⚠️ Commands must be executed manually at edge routing switches outside the air-gapped diode.
                   </p>
 
@@ -682,13 +682,13 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            background: '#F8FAFC',
+            background: 'var(--bg-main)',
           }}>
             {/* Quick Prompt Chips */}
             <div style={{
               padding: '12px 20px',
-              background: '#FFFFFF',
-              borderBottom: '1px solid #E2E8F0',
+              background: 'var(--bg-surface)',
+              borderBottom: '1px solid var(--border-subtle)',
               display: 'flex',
               gap: '8px',
               overflowX: 'auto',
@@ -699,26 +699,16 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                   key={idx}
                   onClick={() => handleSendChat(chip.query)}
                   style={{
-                    background: '#F1F5F9',
-                    border: '1px solid #E2E8F0',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-subtle)',
                     borderRadius: '9999px',
                     padding: '4px 12px',
                     fontSize: '11px',
                     fontWeight: '600',
-                    color: '#334155',
+                    color: 'var(--text-secondary)',
                     cursor: 'pointer',
                     transition: 'all 0.15s',
                     flexShrink: 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#E0F2FE';
-                    e.currentTarget.style.borderColor = '#BAE6FD';
-                    e.currentTarget.style.color = '#0369A1';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#F1F5F9';
-                    e.currentTarget.style.borderColor = '#E2E8F0';
-                    e.currentTarget.style.color = '#334155';
                   }}
                 >
                   {chip.label}
@@ -753,7 +743,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                       gap: '6px',
                       marginBottom: '4px',
                       fontSize: '10px',
-                      color: '#64748B',
+                      color: 'var(--text-secondary)',
                       fontWeight: '700',
                     }}>
                       <span>{isUser ? 'ANALYST' : 'DIODE COPILOT (SLM)'}</span>
@@ -765,10 +755,10 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                       maxWidth: '92%',
                       padding: '14px 18px',
                       borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                      background: isUser ? '#0F172A' : '#FFFFFF',
-                      color: isUser ? '#FFFFFF' : '#1E293B',
-                      border: isUser ? 'none' : '1px solid #E2E8F0',
-                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                      background: isUser ? 'var(--accent-blue)' : 'var(--bg-card)',
+                      color: isUser ? '#FFFFFF' : 'var(--text-primary)',
+                      border: isUser ? 'none' : '1px solid var(--border-subtle)',
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
                       fontSize: '13px',
                       lineHeight: 1.6,
                       wordBreak: 'break-word',
@@ -784,7 +774,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
               })}
 
               {chatLoading && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748B', fontSize: '12px', padding: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '12px', padding: '10px' }}>
                   <Sparkles size={14} className="pulse" color="#2563EB" />
                   <span>On-premise SLM evaluating telemetry...</span>
                 </div>
@@ -795,8 +785,8 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
             {/* Input Bar */}
             <div style={{
               padding: '16px 20px',
-              background: '#FFFFFF',
-              borderTop: '1px solid #E2E8F0',
+              background: 'var(--bg-surface)',
+              borderTop: '1px solid var(--border-subtle)',
             }}>
               <form
                 onSubmit={(e) => {
@@ -807,11 +797,11 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: '#F8FAFC',
-                  border: '1px solid #CBD5E1',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-input)',
                   borderRadius: '12px',
                   padding: '6px 10px',
-                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
                 }}
               >
                 <input
@@ -826,7 +816,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                     background: 'transparent',
                     outline: 'none',
                     fontSize: '13px',
-                    color: '#0F172A',
+                    color: 'var(--text-primary)',
                     padding: '6px 8px',
                   }}
                 />
@@ -840,7 +830,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                     width: '34px',
                     height: '34px',
                     borderRadius: '8px',
-                    background: chatInput.trim() ? '#2563EB' : '#94A3B8',
+                    background: chatInput.trim() ? '#2563EB' : 'var(--border-input)',
                     color: '#FFFFFF',
                     border: 'none',
                     cursor: chatInput.trim() ? 'pointer' : 'default',
@@ -850,7 +840,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                   <Send size={15} />
                 </button>
               </form>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '10px', color: '#94A3B8' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '10px', color: 'var(--text-muted)' }}>
                 <span>Physical Unidirectional Optical Tap • Simplex Rx • Zero Socket Outbound</span>
                 <span>Press Enter to Submit</span>
               </div>
@@ -876,7 +866,7 @@ function renderMarkdownSimple(text, isUser) {
     })
     // Inline code
     .replace(/`([^`]+)`/g, (m, c) => {
-      return `<code style="background: ${isUser ? 'rgba(255,255,255,0.2)' : '#F1F5F9'}; color: ${isUser ? '#FFFFFF' : '#0F172A'}; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px; font-weight: 700;">${c}</code>`;
+      return `<code style="background: ${isUser ? 'rgba(255,255,255,0.2)' : 'var(--bg-surface)'}; color: ${isUser ? '#FFFFFF' : 'var(--text-primary)'}; padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px; font-weight: 700;">${c}</code>`;
     })
     // Headers
     .replace(/^### (.*$)/gim, '<h4 style="font-size: 13px; font-weight: 800; margin: 8px 0 4px; color: inherit;">$1</h4>')

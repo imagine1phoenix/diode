@@ -95,7 +95,7 @@ export default function ThreatGeoMap({ alerts = [] }) {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#f8fafc', letterSpacing: '-0.01em' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
                   Live Cyber Threat Operations Map
                 </h2>
                 <span style={{
@@ -126,10 +126,10 @@ export default function ThreatGeoMap({ alerts = [] }) {
           {/* Filter Pills */}
           <div style={{
             display: 'inline-flex',
-            background: 'rgba(15, 23, 42, 0.8)',
+            background: 'var(--bg-surface)',
             padding: '3px',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--bg-card-border)',
+            border: '1px solid var(--border-subtle)',
             gap: '2px',
           }}>
             <button
@@ -184,8 +184,8 @@ export default function ThreatGeoMap({ alerts = [] }) {
             disabled={loading}
             title="Refresh GeoIP telemetry"
             style={{
-              background: 'rgba(30, 41, 59, 0.6)',
-              border: '1px solid var(--bg-card-border)',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
               color: 'var(--text-secondary)',
               padding: '6px 10px',
               borderRadius: 'var(--radius-sm)',

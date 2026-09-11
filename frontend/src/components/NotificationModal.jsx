@@ -154,16 +154,17 @@ export default function NotificationModal({ isOpen, onClose }) {
     >
       <div
         style={{
-          background: '#FFFFFF',
-          border: '1px solid #CBD5E1',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
           borderRadius: '16px',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+          boxShadow: 'var(--shadow-card)',
           maxWidth: '820px',
           width: '100%',
           maxHeight: '90vh',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          transition: 'background 0.2s ease, border-color 0.2s ease',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -173,20 +174,20 @@ export default function NotificationModal({ isOpen, onClose }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '18px 24px',
-          borderBottom: '1px solid #E2E8F0',
-          background: '#F8FAFC',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface-hover)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              background: '#EEF2FF',
-              border: '1px solid #C7D2FE',
+              background: 'rgba(79, 70, 229, 0.15)',
+              border: '1px solid rgba(129, 140, 248, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#4338CA',
+              color: '#818CF8',
             }}>
               <Bell size={18} />
             </div>
@@ -194,7 +195,7 @@ export default function NotificationModal({ isOpen, onClose }) {
               <h2 style={{
                 fontSize: '15px',
                 fontWeight: '900',
-                color: '#0F172A',
+                color: 'var(--text-primary)',
                 fontFamily: 'var(--font-mono)',
                 textTransform: 'uppercase',
                 letterSpacing: '-0.01em',
@@ -202,7 +203,7 @@ export default function NotificationModal({ isOpen, onClose }) {
               }}>
                 External Alert Dispatcher // Operational Integrations
               </h2>
-              <p style={{ fontSize: '11.5px', color: '#64748B', margin: '2px 0 0', fontWeight: '500' }}>
+              <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', margin: '2px 0 0', fontWeight: '500' }}>
                 Forward High & Critical detections directly to Webhooks, Discord, Slack, and Telegram
               </p>
             </div>
@@ -213,7 +214,7 @@ export default function NotificationModal({ isOpen, onClose }) {
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#94A3B8',
+              color: 'var(--text-secondary)',
               cursor: 'pointer',
               padding: '6px',
               borderRadius: '8px',
@@ -226,19 +227,19 @@ export default function NotificationModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Scrollable Content */}
+        {/* Content Body */}
         <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Webhook Card */}
           <div style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '12px',
             padding: '16px 18px',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+            boxShadow: 'var(--shadow-sm)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#0F172A' }}>Webhook / Slack / Discord URL</span>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Webhook / Slack / Discord URL</span>
               </div>
               <span style={{
                 fontSize: '10.5px',
@@ -261,33 +262,34 @@ export default function NotificationModal({ isOpen, onClose }) {
                 width: '100%',
                 padding: '8px 12px',
                 borderRadius: '8px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-subtle)',
                 fontSize: '12px',
                 fontFamily: 'var(--font-mono)',
                 outline: 'none',
-                background: '#F8FAFC',
+                background: 'var(--bg-surface)',
+                color: 'var(--text-primary)',
               }}
             />
-            <p style={{ fontSize: '11px', color: '#64748B', marginTop: '6px', marginBottom: 0 }}>
+            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '6px', marginBottom: 0 }}>
               Discord and Slack webhooks are automatically converted to native color-coded rich cards.
             </p>
           </div>
 
           {/* Telegram Bot Card */}
           <div style={{
-            background: '#FFFFFF',
-            border: '1px solid #E2E8F0',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '12px',
             padding: '16px 18px',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+            boxShadow: 'var(--shadow-sm)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
               <Bot size={15} color="#0284C7" />
-              <span style={{ fontSize: '13px', fontWeight: '700', color: '#0F172A' }}>Telegram Bot Integration</span>
+              <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Telegram Bot Integration</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '11px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>
+                <label style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                   Bot Token
                 </label>
                 <div style={{ position: 'relative' }}>
@@ -300,11 +302,12 @@ export default function NotificationModal({ isOpen, onClose }) {
                       width: '100%',
                       padding: '8px 32px 8px 12px',
                       borderRadius: '8px',
-                      border: '1px solid #CBD5E1',
+                      border: '1px solid var(--border-subtle)',
                       fontSize: '11.5px',
                       fontFamily: 'var(--font-mono)',
                       outline: 'none',
-                      background: '#F8FAFC',
+                      background: 'var(--bg-surface)',
+                      color: 'var(--text-primary)',
                     }}
                   />
                   <button
@@ -317,7 +320,7 @@ export default function NotificationModal({ isOpen, onClose }) {
                       transform: 'translateY(-50%)',
                       background: 'none',
                       border: 'none',
-                      color: '#94A3B8',
+                      color: 'var(--text-secondary)',
                       cursor: 'pointer',
                     }}
                   >
@@ -327,7 +330,7 @@ export default function NotificationModal({ isOpen, onClose }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '11px', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '4px' }}>
+                <label style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
                   Chat ID or Channel
                 </label>
                 <input
@@ -339,11 +342,12 @@ export default function NotificationModal({ isOpen, onClose }) {
                     width: '100%',
                     padding: '8px 12px',
                     borderRadius: '8px',
-                    border: '1px solid #CBD5E1',
+                    border: '1px solid var(--border-subtle)',
                     fontSize: '11.5px',
                     fontFamily: 'var(--font-mono)',
                     outline: 'none',
-                    background: '#F8FAFC',
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-primary)',
                   }}
                 />
               </div>
@@ -353,12 +357,12 @@ export default function NotificationModal({ isOpen, onClose }) {
           {/* Trigger Threshold & Anti-Spam */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '12px',
               padding: '14px 16px',
             }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#0F172A', display: 'block', marginBottom: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
                 Minimum Severity Gate
               </span>
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -376,9 +380,9 @@ export default function NotificationModal({ isOpen, onClose }) {
                       padding: '6px 8px',
                       borderRadius: '6px',
                       border: '1px solid',
-                      borderColor: config.min_severity === item.id ? '#2563EB' : '#CBD5E1',
-                      background: config.min_severity === item.id ? '#EFF6FF' : '#FFFFFF',
-                      color: config.min_severity === item.id ? '#1D4ED8' : '#475569',
+                      borderColor: config.min_severity === item.id ? '#2563EB' : 'var(--border-subtle)',
+                      background: config.min_severity === item.id ? 'rgba(37, 99, 235, 0.15)' : 'var(--bg-surface)',
+                      color: config.min_severity === item.id ? 'var(--accent-blue)' : 'var(--text-secondary)',
                       fontSize: '11px',
                       fontWeight: config.min_severity === item.id ? '700' : '500',
                       cursor: 'pointer',
@@ -391,12 +395,12 @@ export default function NotificationModal({ isOpen, onClose }) {
             </div>
 
             <div style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '12px',
               padding: '14px 16px',
             }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#0F172A', display: 'block', marginBottom: '8px' }}>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
                 Anti-Flood Rate Limit (Cooldown)
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -410,14 +414,15 @@ export default function NotificationModal({ isOpen, onClose }) {
                     width: '80px',
                     padding: '6px 10px',
                     borderRadius: '6px',
-                    border: '1px solid #CBD5E1',
+                    border: '1px solid var(--border-subtle)',
                     fontSize: '12px',
                     fontWeight: '700',
                     fontFamily: 'var(--font-mono)',
-                    background: '#F8FAFC',
+                    background: 'var(--bg-surface)',
+                    color: 'var(--text-primary)',
                   }}
                 />
-                <span style={{ fontSize: '11.5px', color: '#64748B' }}>
+                <span style={{ fontSize: '11.5px', color: 'var(--text-secondary)' }}>
                   seconds per identical threat vector
                 </span>
               </div>
@@ -430,7 +435,7 @@ export default function NotificationModal({ isOpen, onClose }) {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingTop: '8px',
-            borderTop: '1px solid #F1F5F9',
+            borderTop: '1px solid var(--border-subtle)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
@@ -443,9 +448,9 @@ export default function NotificationModal({ isOpen, onClose }) {
                   gap: '6px',
                   padding: '7px 14px',
                   borderRadius: '8px',
-                  background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  color: '#0F172A',
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-primary)',
                   fontSize: '11.5px',
                   fontWeight: '700',
                   cursor: (!config.webhook_url && !config.telegram_bot_token) ? 'not-allowed' : 'pointer',
@@ -490,9 +495,9 @@ export default function NotificationModal({ isOpen, onClose }) {
                   gap: '6px',
                   padding: '8px 18px',
                   borderRadius: '8px',
-                  background: '#0F172A',
+                  background: 'var(--text-primary)',
                   border: 'none',
-                  color: '#FFFFFF',
+                  color: 'var(--bg-card)',
                   fontSize: '12px',
                   fontWeight: '700',
                   cursor: 'pointer',
@@ -511,27 +516,27 @@ export default function NotificationModal({ isOpen, onClose }) {
               fontWeight: '800',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
-              color: '#64748B',
+              color: 'var(--text-secondary)',
               display: 'block',
               marginBottom: '6px',
             }}>
               Outbound Dispatch Logs (Last {logs.length})
             </span>
             <div style={{
-              border: '1px solid #E2E8F0',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               maxHeight: '160px',
               overflowY: 'auto',
-              background: '#F8FAFC',
+              background: 'var(--bg-surface)',
             }}>
               {logs.length === 0 ? (
-                <div style={{ padding: '24px', textAlign: 'center', fontSize: '11.5px', color: '#94A3B8' }}>
+                <div style={{ padding: '24px', textAlign: 'center', fontSize: '11.5px', color: 'var(--text-muted)' }}>
                   No notifications dispatched yet. Trigger an attack simulation or test alert to see real deliveries.
                 </div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #E2E8F0', color: '#64748B', textAlign: 'left' }}>
+                    <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', textAlign: 'left' }}>
                       <th style={{ padding: '6px 10px' }}>Time</th>
                       <th style={{ padding: '6px 10px' }}>Channel</th>
                       <th style={{ padding: '6px 10px' }}>Destination</th>
@@ -541,14 +546,14 @@ export default function NotificationModal({ isOpen, onClose }) {
                   </thead>
                   <tbody>
                     {logs.map((log, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                        <td style={{ padding: '5px 10px', fontFamily: 'var(--font-mono)', color: '#64748B' }}>
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '5px 10px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                           {new Date(log.timestamp).toLocaleTimeString()}
                         </td>
-                        <td style={{ padding: '5px 10px', fontWeight: '700', color: '#0F172A' }}>
+                        <td style={{ padding: '5px 10px', fontWeight: '700', color: 'var(--text-primary)' }}>
                           {log.channel}
                         </td>
-                        <td style={{ padding: '5px 10px', color: '#475569', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <td style={{ padding: '5px 10px', color: 'var(--text-secondary)', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {log.target}
                         </td>
                         <td style={{ padding: '5px 10px' }}>
@@ -558,13 +563,13 @@ export default function NotificationModal({ isOpen, onClose }) {
                             fontSize: '10px',
                             fontWeight: '700',
                             fontFamily: 'var(--font-mono)',
-                            background: log.status === 'delivered' ? '#DCFCE7' : '#FEE2E2',
-                            color: log.status === 'delivered' ? '#15803D' : '#DC2626',
+                            background: log.status === 'delivered' ? 'var(--live-bg)' : 'var(--critical-bg)',
+                            color: log.status === 'delivered' ? 'var(--live-text)' : 'var(--critical-text)',
                           }}>
                             {log.status_code ? `HTTP ${log.status_code}` : log.status}
                           </span>
                         </td>
-                        <td style={{ padding: '5px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: '#64748B' }}>
+                        <td style={{ padding: '5px 10px', textAlign: 'right', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                           {log.latency_ms}ms
                         </td>
                       </tr>

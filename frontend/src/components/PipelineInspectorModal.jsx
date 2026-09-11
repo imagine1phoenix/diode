@@ -313,9 +313,9 @@ export default function PipelineInspectorModal({
           maxHeight: '92vh',
           display: 'flex',
           flexDirection: 'column',
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 25px 65px -12px rgba(15, 23, 42, 0.25), 0 0 1px 1px rgba(15, 23, 42, 0.05)',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: '0 25px 65px -12px rgba(0, 0, 0, 0.45), 0 0 1px 1px rgba(0, 0, 0, 0.1)',
           borderRadius: '20px',
           overflow: 'hidden',
           position: 'relative',
@@ -325,11 +325,11 @@ export default function PipelineInspectorModal({
         {/* Top Header Bar */}
         <div style={{
           padding: '16px 24px',
-          borderBottom: '1px solid #E2E8F0',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: '#FFFFFF',
+          background: 'var(--bg-surface)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{
@@ -347,7 +347,7 @@ export default function PipelineInspectorModal({
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', margin: 0 }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
                   Live Pipeline Inspector & Jury Walkthrough
                 </h2>
                 <span style={{
@@ -355,15 +355,15 @@ export default function PipelineInspectorModal({
                   fontWeight: '700',
                   padding: '3px 9px',
                   borderRadius: '9999px',
-                  background: '#DCFCE7',
-                  color: '#15803D',
-                  border: '1px solid #BBF7D0',
+                  background: 'var(--live-bg)',
+                  color: 'var(--live-text)',
+                  border: '1px solid var(--live-border)',
                   letterSpacing: '0.04em',
                 }}>
                   HOW IT WORKS
                 </span>
               </div>
-              <p style={{ fontSize: '12.5px', color: '#64748B', margin: '2px 0 0', fontWeight: '500' }}>
+              <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '2px 0 0', fontWeight: '500' }}>
                 Step-by-step visual demonstration of the unidirectional data diode ingestion, feature extraction & ML classification pipeline
               </p>
             </div>
@@ -373,9 +373,9 @@ export default function PipelineInspectorModal({
             onClick={onClose}
             aria-label="Close Inspector"
             style={{
-              background: '#F1F5F9',
+              background: 'var(--bg-surface-hover)',
               border: 'none',
-              color: '#64748B',
+              color: 'var(--text-secondary)',
               cursor: 'pointer',
               width: '32px',
               height: '32px',
@@ -385,14 +385,6 @@ export default function PipelineInspectorModal({
               justifyContent: 'center',
               transition: 'all 0.15s ease',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#E2E8F0';
-              e.currentTarget.style.color = '#0F172A';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#F1F5F9';
-              e.currentTarget.style.color = '#64748B';
-            }}
           >
             <X size={18} />
           </button>
@@ -401,8 +393,8 @@ export default function PipelineInspectorModal({
         {/* Threat Scenario Selector Strip */}
         <div style={{
           padding: '10px 24px',
-          background: '#F8FAFC',
-          borderBottom: '1px solid #E2E8F0',
+          background: 'var(--bg-surface)',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
@@ -411,7 +403,7 @@ export default function PipelineInspectorModal({
           <span style={{
             fontSize: '11px',
             fontWeight: '800',
-            color: '#64748B',
+            color: 'var(--text-secondary)',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
             whiteSpace: 'nowrap',
@@ -428,9 +420,9 @@ export default function PipelineInspectorModal({
                 style={{
                   padding: '6px 13px',
                   borderRadius: '9999px',
-                  border: isSelected ? `1.5px solid ${info.color}` : '1px solid #CBD5E1',
-                  background: isSelected ? '#EFF6FF' : '#FFFFFF',
-                  color: isSelected ? '#1D4ED8' : '#475569',
+                  border: isSelected ? `1.5px solid ${info.color}` : '1px solid var(--border-input)',
+                  background: isSelected ? 'rgba(37, 99, 235, 0.15)' : 'var(--bg-card)',
+                  color: isSelected ? 'var(--accent-blue)' : 'var(--text-secondary)',
                   fontSize: '11.5px',
                   fontWeight: isSelected ? '700' : '600',
                   cursor: isSimulatingInternal ? 'wait' : 'pointer',
@@ -457,7 +449,7 @@ export default function PipelineInspectorModal({
           display: 'flex',
           flexDirection: 'column',
           gap: '18px',
-          background: '#F8FAFC',
+          background: 'var(--bg-main)',
         }}>
 
           {/* 5-Stage Connected Stepper Ribbon */}
@@ -485,15 +477,15 @@ export default function PipelineInspectorModal({
                     padding: '12px 14px',
                     borderRadius: '12px',
                     background: isActive
-                      ? '#FFFFFF'
+                      ? 'var(--bg-card)'
                       : isPast
-                        ? '#F0FDF4'
-                        : '#FFFFFF',
+                        ? 'rgba(21, 128, 61, 0.15)'
+                        : 'var(--bg-surface)',
                     border: isActive
-                      ? '2px solid #2563EB'
+                      ? '2px solid var(--accent-blue)'
                       : isPast
-                        ? '1px solid #86EFAC'
-                        : '1px solid #E2E8F0',
+                        ? '1px solid rgba(34, 197, 94, 0.4)'
+                        : '1px solid var(--border-subtle)',
                     cursor: 'pointer',
                     position: 'relative',
                     transition: 'all 0.2s ease',
@@ -509,17 +501,17 @@ export default function PipelineInspectorModal({
                       height: '26px',
                       borderRadius: '50%',
                       background: isActive
-                        ? '#2563EB'
+                        ? 'var(--accent-blue)'
                         : isPast
                           ? '#15803D'
-                          : '#F1F5F9',
-                      color: isActive || isPast ? '#FFFFFF' : '#64748B',
+                          : 'var(--bg-surface-hover)',
+                      color: isActive || isPast ? '#FFFFFF' : 'var(--text-secondary)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '11px',
                       fontWeight: '800',
-                      border: isActive || isPast ? 'none' : '1px solid #CBD5E1',
+                      border: isActive || isPast ? 'none' : '1px solid var(--border-subtle)',
                     }}>
                       {isPast ? <Check size={14} strokeWidth={3} /> : stg.id}
                     </div>
@@ -529,9 +521,9 @@ export default function PipelineInspectorModal({
                         fontSize: '9.5px',
                         padding: '2px 7px',
                         borderRadius: '9999px',
-                        background: '#EFF6FF',
-                        color: '#1D4ED8',
-                        border: '1px solid #BFDBFE',
+                        background: 'rgba(37, 99, 235, 0.2)',
+                        color: 'var(--accent-blue)',
+                        border: '1px solid rgba(37, 99, 235, 0.4)',
                         fontWeight: '800',
                         textTransform: 'uppercase',
                         letterSpacing: '0.04em',
@@ -544,9 +536,9 @@ export default function PipelineInspectorModal({
                         fontSize: '9.5px',
                         padding: '2px 7px',
                         borderRadius: '9999px',
-                        background: '#DCFCE7',
-                        color: '#15803D',
-                        border: '1px solid #BBF7D0',
+                        background: 'var(--live-bg)',
+                        color: 'var(--live-text)',
+                        border: '1px solid var(--live-border)',
                         fontWeight: '700',
                         textTransform: 'uppercase',
                       }}>
@@ -556,11 +548,11 @@ export default function PipelineInspectorModal({
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                    <Icon size={14} color={isActive ? '#2563EB' : isPast ? '#15803D' : '#64748B'} />
+                    <Icon size={14} color={isActive ? 'var(--accent-blue)' : isPast ? '#4ADE80' : 'var(--text-secondary)'} />
                     <span style={{
                       fontSize: '12px',
                       fontWeight: isActive ? '800' : '700',
-                      color: isActive ? '#0F172A' : isPast ? '#166534' : '#334155',
+                      color: isActive ? 'var(--text-primary)' : isPast ? '#4ADE80' : 'var(--text-secondary)',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -571,7 +563,7 @@ export default function PipelineInspectorModal({
 
                   <div style={{
                     fontSize: '10.5px',
-                    color: isActive ? '#2563EB' : isPast ? '#15803D' : '#64748B',
+                    color: isActive ? 'var(--accent-blue)' : isPast ? '#4ADE80' : 'var(--text-secondary)',
                     fontWeight: isActive ? '600' : '500',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -586,10 +578,10 @@ export default function PipelineInspectorModal({
 
           {/* Active Stage Deep-Dive Spotlight Card */}
           <div style={{
-            background: '#FFFFFF',
+            background: 'var(--bg-card)',
             borderRadius: '16px',
-            border: '1px solid #E2E8F0',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
             padding: '20px 22px',
             position: 'relative',
           }}>
@@ -601,21 +593,21 @@ export default function PipelineInspectorModal({
                     fontWeight: '800',
                     padding: '3px 9px',
                     borderRadius: '6px',
-                    background: '#EFF6FF',
-                    color: '#1D4ED8',
-                    border: '1px solid #DBEAFE',
+                    background: 'rgba(37, 99, 235, 0.15)',
+                    color: 'var(--accent-blue)',
+                    border: '1px solid rgba(37, 99, 235, 0.3)',
                     letterSpacing: '0.04em',
                   }}>
                     STAGE {currentStageData.id} OF 5
                   </span>
-                  <span style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A' }}>
+                  <span style={{ fontSize: '17px', fontWeight: '800', color: 'var(--text-primary)' }}>
                     {currentStageData.title}
                   </span>
-                  <span style={{ fontSize: '13px', color: '#64748B', fontWeight: '600' }}>
+                  <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '600' }}>
                     • {currentStageData.subtitle}
                   </span>
                 </div>
-                <p style={{ fontSize: '13px', color: '#475569', maxWidth: '780px', margin: 0, lineHeight: '1.5' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '780px', margin: 0, lineHeight: '1.5' }}>
                   {currentStageData.summary}
                 </p>
               </div>
@@ -624,9 +616,9 @@ export default function PipelineInspectorModal({
               <div style={{
                 padding: '6px 14px',
                 borderRadius: '9999px',
-                background: '#F1F5F9',
-                border: '1px solid #CBD5E1',
-                color: '#1E293B',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-primary)',
                 fontSize: '11px',
                 fontWeight: '700',
                 whiteSpace: 'nowrap',
@@ -641,10 +633,10 @@ export default function PipelineInspectorModal({
 
               {/* Telemetry Metrics Grid */}
               <div style={{
-                background: '#F8FAFC',
+                background: 'var(--bg-surface)',
                 padding: '16px',
                 borderRadius: '12px',
-                border: '1px solid #E2E8F0',
+                border: '1px solid var(--border-subtle)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
@@ -652,7 +644,7 @@ export default function PipelineInspectorModal({
                 <div style={{
                   fontSize: '11px',
                   fontWeight: '800',
-                  color: '#475569',
+                  color: 'var(--text-secondary)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   display: 'flex',
@@ -666,19 +658,19 @@ export default function PipelineInspectorModal({
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {currentStageData.details.map((dt, idx) => (
                     <div key={idx} style={{
-                      background: '#FFFFFF',
+                      background: 'var(--bg-card)',
                       padding: '10px 12px',
                       borderRadius: '8px',
-                      border: '1px solid #E2E8F0',
+                      border: '1px solid var(--border-subtle)',
                       boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
                     }}>
-                      <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: '600', marginBottom: '3px' }}>
+                      <div style={{ fontSize: '10.5px', color: 'var(--text-secondary)', fontWeight: '600', marginBottom: '3px' }}>
                         {dt.label}
                       </div>
                       <div style={{
                         fontSize: '11.5px',
                         fontWeight: '700',
-                        color: '#0F172A',
+                        color: 'var(--text-primary)',
                         fontFamily: 'var(--font-mono)',
                         lineHeight: '1.35',
                         wordBreak: 'break-word',
@@ -694,21 +686,21 @@ export default function PipelineInspectorModal({
                   marginTop: '2px',
                   padding: '10px 14px',
                   borderRadius: '8px',
-                  background: '#EFF6FF',
-                  border: '1px solid #BFDBFE',
+                  background: 'rgba(37, 99, 235, 0.12)',
+                  border: '1px solid rgba(37, 99, 235, 0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
                 }}>
                   <Sparkles size={16} color="#2563EB" style={{ flexShrink: 0 }} />
-                  <div style={{ fontSize: '12px', color: '#1E293B', lineHeight: '1.4' }}>
-                    <strong style={{ color: '#1D4ED8', fontWeight: '800' }}>Active Scenario:</strong>{' '}
-                    <span style={{ fontWeight: '700', color: '#0F172A' }}>{scInfo.name}</span> — targeting{' '}
+                  <div style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+                    <strong style={{ color: 'var(--accent-blue)', fontWeight: '800' }}>Active Scenario:</strong>{' '}
+                    <span style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{scInfo.name}</span> — targeting{' '}
                     <span style={{
                       fontFamily: 'var(--font-mono)',
                       fontWeight: '700',
-                      color: '#1E40AF',
-                      background: '#DBEAFE',
+                      color: 'var(--accent-blue)',
+                      background: 'rgba(37, 99, 235, 0.25)',
                       padding: '2px 6px',
                       borderRadius: '4px',
                       fontSize: '11px',
@@ -894,8 +886,8 @@ export default function PipelineInspectorModal({
         {/* Bottom Playback & Demonstration Controls */}
         <div style={{
           padding: '14px 24px',
-          borderTop: '1px solid #E2E8F0',
-          background: '#FFFFFF',
+          borderTop: '1px solid var(--border-subtle)',
+          background: 'var(--bg-surface)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -912,9 +904,9 @@ export default function PipelineInspectorModal({
                 gap: '6px',
                 padding: '8px 16px',
                 borderRadius: '8px',
-                background: isPlaying ? '#FEF3C7' : '#DCFCE7',
-                border: isPlaying ? '1px solid #FCD34D' : '1px solid #86EFAC',
-                color: isPlaying ? '#B45309' : '#15803D',
+                background: isPlaying ? 'rgba(245, 158, 11, 0.2)' : 'rgba(34, 197, 94, 0.2)',
+                border: isPlaying ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid rgba(34, 197, 94, 0.4)',
+                color: isPlaying ? '#FBBF24' : '#4ADE80',
                 fontSize: '12px',
                 fontWeight: '700',
                 cursor: 'pointer',
@@ -934,9 +926,9 @@ export default function PipelineInspectorModal({
                 gap: '4px',
                 padding: '8px 14px',
                 borderRadius: '8px',
-                background: currentStage <= 1 ? '#F1F5F9' : '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                color: currentStage <= 1 ? '#94A3B8' : '#0F172A',
+                background: currentStage <= 1 ? 'var(--bg-surface)' : 'var(--bg-card)',
+                border: '1px solid var(--border-input)',
+                color: currentStage <= 1 ? 'var(--text-muted)' : 'var(--text-primary)',
                 fontSize: '12px',
                 fontWeight: '700',
                 cursor: currentStage <= 1 ? 'not-allowed' : 'pointer',
@@ -957,9 +949,9 @@ export default function PipelineInspectorModal({
                 gap: '4px',
                 padding: '8px 16px',
                 borderRadius: '8px',
-                background: currentStage >= 5 ? '#F1F5F9' : '#2563EB',
-                border: currentStage >= 5 ? '1px solid #CBD5E1' : 'none',
-                color: currentStage >= 5 ? '#94A3B8' : '#FFFFFF',
+                background: currentStage >= 5 ? 'var(--bg-surface)' : 'var(--accent-blue)',
+                border: currentStage >= 5 ? '1px solid var(--border-input)' : 'none',
+                color: currentStage >= 5 ? 'var(--text-muted)' : '#FFFFFF',
                 fontSize: '12px',
                 fontWeight: '700',
                 cursor: currentStage >= 5 ? 'not-allowed' : 'pointer',
@@ -981,16 +973,14 @@ export default function PipelineInspectorModal({
                 gap: '6px',
                 padding: '8px 12px',
                 borderRadius: '8px',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                color: '#475569',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-input)',
+                color: 'var(--text-secondary)',
                 fontSize: '12px',
                 fontWeight: '600',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; }}
             >
               <RefreshCw size={13} />
               <span>Restart Flow</span>
@@ -999,14 +989,14 @@ export default function PipelineInspectorModal({
 
           {/* Speed & Close Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600' }}>
               <span>Speed:</span>
               <div style={{
                 display: 'inline-flex',
-                background: '#E2E8F0',
+                background: 'var(--bg-card)',
                 padding: '2px',
                 borderRadius: '8px',
-                border: '1px solid #CBD5E1',
+                border: '1px solid var(--border-input)',
               }}>
                 <button
                   onClick={() => setPlaybackSpeed(3000)}
@@ -1014,12 +1004,11 @@ export default function PipelineInspectorModal({
                     padding: '3px 8px',
                     borderRadius: '6px',
                     border: 'none',
-                    background: playbackSpeed === 3000 ? '#FFFFFF' : 'transparent',
-                    color: playbackSpeed === 3000 ? '#0F172A' : '#64748B',
+                    background: playbackSpeed === 3000 ? 'var(--bg-surface-hover)' : 'transparent',
+                    color: playbackSpeed === 3000 ? 'var(--text-primary)' : 'var(--text-secondary)',
                     fontWeight: playbackSpeed === 3000 ? '700' : '600',
                     fontSize: '10.5px',
                     cursor: 'pointer',
-                    boxShadow: playbackSpeed === 3000 ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
                   }}
                 >
                   1x (Relaxed)
@@ -1030,12 +1019,11 @@ export default function PipelineInspectorModal({
                     padding: '3px 8px',
                     borderRadius: '6px',
                     border: 'none',
-                    background: playbackSpeed === 1800 ? '#FFFFFF' : 'transparent',
-                    color: playbackSpeed === 1800 ? '#0F172A' : '#64748B',
+                    background: playbackSpeed === 1800 ? 'var(--bg-surface-hover)' : 'transparent',
+                    color: playbackSpeed === 1800 ? 'var(--text-primary)' : 'var(--text-secondary)',
                     fontWeight: playbackSpeed === 1800 ? '700' : '600',
                     fontSize: '10.5px',
                     cursor: 'pointer',
-                    boxShadow: playbackSpeed === 1800 ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
                   }}
                 >
                   1.5x (Demo)
@@ -1048,17 +1036,14 @@ export default function PipelineInspectorModal({
               style={{
                 padding: '8px 20px',
                 borderRadius: '8px',
-                background: '#0F172A',
-                border: 'none',
-                color: '#FFFFFF',
+                background: 'var(--bg-surface-hover)',
+                border: '1px solid var(--border-input)',
+                color: 'var(--text-primary)',
                 fontWeight: '700',
                 fontSize: '12px',
                 cursor: 'pointer',
-                boxShadow: '0 2px 4px rgba(15, 23, 42, 0.15)',
                 transition: 'background 0.15s ease',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#1E293B'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#0F172A'; }}
             >
               Close Inspector
             </button>

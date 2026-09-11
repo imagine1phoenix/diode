@@ -32,8 +32,8 @@ export default function ThreatDonutChart({ threatStats = {} }) {
       {
         data: dataValues,
         backgroundColor: keys.map((k) => THREAT_CONFIG[k].color),
-        borderColor: '#FFFFFF',
-        borderWidth: 2,
+        borderColor: 'transparent',
+        borderWidth: 1.5,
         hoverOffset: 5,
       },
     ],
@@ -47,7 +47,7 @@ export default function ThreatDonutChart({ threatStats = {} }) {
       legend: {
         position: 'right',
         labels: {
-          color: '#475569',
+          color: '#94A3B8',
           boxWidth: 8,
           boxHeight: 8,
           usePointStyle: true,
@@ -71,10 +71,10 @@ export default function ThreatDonutChart({ threatStats = {} }) {
   return (
     <div className="glass-panel" style={{ padding: '16px 18px', height: '220px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)' }}>
           Threat Vector Distribution
         </h3>
-        <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
           {total.toLocaleString()} detections
         </span>
       </div>

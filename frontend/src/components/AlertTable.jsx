@@ -242,13 +242,14 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
 
   return (
     <div style={{
-      background: '#FFFFFF',
-      border: '1px solid #E2E8F0',
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border-subtle)',
       borderRadius: '16px',
-      boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.05)',
+      boxShadow: 'var(--shadow-card)',
       padding: '20px',
       display: 'flex',
       flexDirection: 'column',
+      transition: 'background 0.2s ease, border-color 0.2s ease',
     }}>
       {/* Table Header & Controls */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
@@ -257,7 +258,7 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
             <h2 style={{
               fontSize: '16px',
               fontWeight: '900',
-              color: '#0F172A',
+              color: 'var(--text-primary)',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
@@ -273,14 +274,14 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
               fontWeight: '700',
               padding: '2px 8px',
               borderRadius: '6px',
-              background: '#F1F5F9',
-              color: '#334155',
-              border: '1px solid #CBD5E1',
+              background: 'var(--bg-surface-hover)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-subtle)',
             }}>
               {filteredAlerts.length} Events
             </span>
           </div>
-          <p style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px', fontWeight: '500' }}>
+          <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginTop: '2px', fontWeight: '500' }}>
             Real-time normalized security events with MITRE ATT&CK mapping & passive explainability
           </p>
         </div>
@@ -292,12 +293,12 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            background: '#F8FAFC',
-            border: '1px solid #CBD5E1',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
             borderRadius: '8px',
             padding: '6px 12px',
           }}>
-            <Search size={14} color="#64748B" />
+            <Search size={14} color="var(--text-secondary)" />
             <input
               type="text"
               placeholder="Search Flow 5-Tuple, IP, JA3, DNS Query..."
@@ -307,7 +308,7 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                color: '#0F172A',
+                color: 'var(--text-primary)',
                 fontSize: '11.5px',
                 width: '260px',
                 fontWeight: '500',
@@ -320,11 +321,11 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
             value={threatFilter}
             onChange={(e) => setThreatFilter(e.target.value)}
             style={{
-              background: '#F8FAFC',
-              border: '1px solid #CBD5E1',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
               borderRadius: '8px',
               padding: '6px 10px',
-              color: '#0F172A',
+              color: 'var(--text-primary)',
               fontSize: '11.5px',
               fontWeight: '600',
               outline: 'none',
@@ -341,14 +342,14 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
           </select>
 
           {/* Severity Buttons */}
-          <div style={{ display: 'flex', gap: '2px', background: '#F1F5F9', padding: '2px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+          <div style={{ display: 'flex', gap: '2px', background: 'var(--bg-surface)', padding: '2px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
             {['all', 'critical', 'high', 'medium', 'low'].map((sev) => (
               <button
                 key={sev}
                 onClick={() => setSeverityFilter(sev)}
                 style={{
-                  background: severityFilter === sev ? '#0F172A' : 'transparent',
-                  color: severityFilter === sev ? '#FFFFFF' : '#64748B',
+                  background: severityFilter === sev ? 'var(--text-primary)' : 'transparent',
+                  color: severityFilter === sev ? 'var(--bg-card)' : 'var(--text-secondary)',
                   border: 'none',
                   padding: '4px 8px',
                   borderRadius: '6px',
@@ -372,9 +373,9 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              background: '#FFFFFF',
-              border: '1px solid #CBD5E1',
-              color: '#1E293B',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-primary)',
               padding: '6px 10px',
               borderRadius: '8px',
               fontSize: '11px',
@@ -389,13 +390,13 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
       </div>
 
       {/* Feed Table View */}
-      <div style={{ overflowX: 'auto', maxHeight: '580px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+      <div style={{ overflowX: 'auto', maxHeight: '580px', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
         <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
           <thead>
             <tr style={{
-              borderBottom: '1px solid #E2E8F0',
-              background: '#F8FAFC',
-              color: '#64748B',
+              borderBottom: '1px solid var(--border-subtle)',
+              background: 'var(--bg-surface-hover)',
+              color: 'var(--text-secondary)',
               fontSize: '10.5px',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
@@ -465,20 +466,20 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                     <tr
                       onClick={(e) => toggleExpand(alert.alert_id, e)}
                       style={{
-                        borderBottom: isExpanded ? 'none' : '1px solid #F1F5F9',
-                        background: isExpanded ? '#F8FAFC' : 'transparent',
+                        borderBottom: isExpanded ? 'none' : '1px solid var(--border-subtle)',
+                        background: isExpanded ? 'var(--bg-surface-hover)' : 'transparent',
                         transition: 'background-color 0.15s',
                         cursor: 'pointer',
                       }}
                       onMouseEnter={(e) => {
-                        if (!isExpanded) e.currentTarget.style.backgroundColor = '#F8FAFC';
+                        if (!isExpanded) e.currentTarget.style.backgroundColor = 'var(--bg-surface-hover)';
                       }}
                       onMouseLeave={(e) => {
                         if (!isExpanded) e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
                       {/* Time Column with burst offset */}
-                      <td style={{ padding: '8px 10px', fontSize: '11px', color: '#64748B', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '8px 10px', fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontWeight: '600' }}>{timeStr}</span>
                           {isSameSecond && (
@@ -519,7 +520,7 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                           </div>
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                              <span style={{ fontWeight: '700', color: '#0F172A', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                              <span style={{ fontWeight: '700', color: 'var(--text-primary)', fontSize: '12px', whiteSpace: 'nowrap' }}>
                                 {threatConfig.label}
                               </span>
                               <span
@@ -602,13 +603,13 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                       {/* Connection Path */}
                       <td style={{ padding: '8px 10px' }}>
                         <div className="has-tooltip" style={{ cursor: 'help' }}>
-                          <div style={{ fontSize: '11.5px', fontWeight: '600', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: '11.5px', fontWeight: '600', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
                             <span>{flow.src}</span>
-                            <span style={{ color: '#94A3B8' }}>→</span>
-                            <span style={{ color: flow.isAggregate ? '#2563EB' : '#0F172A' }}>{flow.dst}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>→</span>
+                            <span style={{ color: flow.isAggregate ? 'var(--accent-blue)' : 'var(--text-primary)' }}>{flow.dst}</span>
                           </div>
                           {flow.service && (
-                            <div style={{ fontSize: '10px', color: '#64748B', marginTop: '1px' }}>
+                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '1px' }}>
                               {flow.service}
                             </div>
                           )}
@@ -623,7 +624,7 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                         <div style={{
                           fontSize: '11.5px',
                           lineHeight: '1.45',
-                          color: '#334155',
+                          color: 'var(--text-primary)',
                           wordBreak: 'break-word',
                           fontWeight: '500',
                         }}>
@@ -666,9 +667,9 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                             }}
                             title="Inspect full telemetry & heuristics"
                             style={{
-                              background: '#F1F5F9',
-                              border: '1px solid #CBD5E1',
-                              color: '#0F172A',
+                              background: 'var(--bg-surface-hover)',
+                              border: '1px solid var(--border-subtle)',
+                              color: 'var(--text-primary)',
                               padding: '3px 8px',
                               borderRadius: '6px',
                               fontSize: '10.5px',
@@ -688,9 +689,9 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                             onClick={(e) => downloadDossier(alert, e)}
                             title="Export Forensic PCAP Dossier"
                             style={{
-                              background: '#0F172A',
+                              background: 'var(--text-primary)',
                               border: 'none',
-                              color: '#FFFFFF',
+                              color: 'var(--bg-card)',
                               padding: '3px 8px',
                               borderRadius: '6px',
                               fontSize: '10.5px',
@@ -712,41 +713,41 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                     {/* Expandable Forensic Drawer */}
                     {isExpanded && (
                       <tr style={{
-                        borderBottom: '1px solid #E2E8F0',
-                        background: '#F8FAFC',
+                        borderBottom: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-surface-hover)',
                       }}>
                         <td colSpan={7} style={{ padding: '12px 18px 16px 18px' }}>
                           <div className="accordion-content" style={{
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '10px',
-                            background: '#FFFFFF',
+                            background: 'var(--bg-card)',
                             padding: '14px 18px',
                             borderRadius: '10px',
-                            border: '1px solid #E2E8F0',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                            border: '1px solid var(--border-subtle)',
+                            boxShadow: 'var(--shadow-sm)',
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Sparkles size={15} color="#2563EB" />
-                                <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                <span style={{ fontSize: '11.5px', fontWeight: '800', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                                   Telemetry Explainability Record
                                 </span>
                               </div>
-                              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#64748B' }}>
+                              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
                                 Event ID: {alert.alert_id}
                               </span>
                             </div>
 
                             {/* Natural Language Explanation */}
-                            <p style={{ fontSize: '12.5px', color: '#334155', lineHeight: 1.5, margin: 0 }}>
+                            <p style={{ fontSize: '12.5px', color: 'var(--text-primary)', lineHeight: 1.5, margin: 0 }}>
                               {plainWhy}
                             </p>
 
                             {/* Actions & Triggered Features */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', paddingTop: '8px', borderTop: '1px solid #F1F5F9' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '600' }}>Triggered Signals:</span>
+                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '600' }}>Triggered Signals:</span>
                                 {(alert.evidence?.features_triggered || []).map((feat, idx) => (
                                   <span
                                     key={idx}

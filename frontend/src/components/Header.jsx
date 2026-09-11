@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Sparkles, Bell } from 'lucide-react';
+import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Sparkles, Bell, Sun, Moon } from 'lucide-react';
 
 export default function Header({
   connected,
@@ -10,6 +10,8 @@ export default function Header({
   onOpenCopilot,
   onOpenNotifications,
   onRefresh,
+  theme = 'dark',
+  onToggleTheme,
   isRefreshing = false,
   isSimulating = false,
 }) {
@@ -23,14 +25,15 @@ export default function Header({
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '12px 28px',
-      borderBottom: '1px solid #E2E8F0',
-      background: '#FFFFFF',
-      boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.04)',
+      borderBottom: '1px solid var(--border-subtle)',
+      background: 'var(--bg-surface)',
+      boxShadow: 'var(--shadow-sm)',
       position: 'sticky',
       top: 0,
       zIndex: 40,
       flexWrap: 'wrap',
       gap: '14px',
+      transition: 'background 0.2s ease, border-color 0.2s ease',
     }}>
       {/* Brand & Diode Status */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -42,7 +45,7 @@ export default function Header({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)',
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.2)',
           color: '#FFFFFF',
         }}>
           <Shield size={20} />
@@ -53,7 +56,7 @@ export default function Header({
               fontSize: '16px',
               fontWeight: '900',
               letterSpacing: '-0.02em',
-              color: '#0F172A',
+              color: 'var(--text-primary)',
               fontFamily: 'var(--font-mono)',
               textTransform: 'uppercase',
             }}>
@@ -70,21 +73,21 @@ export default function Header({
                 fontFamily: 'var(--font-mono)',
                 padding: '3px 9px',
                 borderRadius: '6px',
-                background: '#DCFCE7',
-                color: '#15803D',
-                border: '1px solid #BBF7D0',
+                background: 'var(--live-bg)',
+                color: 'var(--live-text)',
+                border: '1px solid var(--live-border)',
                 cursor: 'help',
                 letterSpacing: '0.04em',
               }}
             >
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#15803D' }} className="pulse" />
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--live-text)' }} className="pulse" />
               <span>PASSIVE OPTICAL DIODE TAP (ZERO TX / READ-ONLY)</span>
               <div className="tooltip">
                 Physical hardware isolation: passive optical tap with zero reverse transmission capability (PRD §1).
               </div>
             </div>
           </div>
-          <p style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '500', marginTop: '1px' }}>
+          <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', fontWeight: '500', marginTop: '1px' }}>
             Unidirectional Cyber Threat Classification & Telemetry Forensics
           </p>
         </div>
@@ -99,15 +102,15 @@ export default function Header({
           gap: '8px',
           padding: '6px 12px',
           borderRadius: '8px',
-          background: '#F8FAFC',
-          border: '1px solid #E2E8F0',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
         }}>
           <Activity size={15} color="#2563EB" />
           <div>
-            <div style={{ fontSize: '9.5px', color: '#64748B', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '9.5px', color: 'var(--text-secondary)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               Streaming Telemetry
             </div>
-            <div style={{ fontSize: '11.5px', fontWeight: '800', fontFamily: 'var(--font-mono)', color: '#0F172A' }}>
+            <div style={{ fontSize: '11.5px', fontWeight: '800', fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
               99.2% EFFICIENCY // &lt; 1.1s LATENCY
             </div>
           </div>
@@ -120,24 +123,24 @@ export default function Header({
           gap: '6px',
           padding: '6px 12px',
           borderRadius: '8px',
-          background: connected ? '#F0FDF4' : '#FEF2F2',
-          border: `1px solid ${connected ? '#BBF7D0' : '#FECACA'}`,
+          background: connected ? 'var(--live-bg)' : 'var(--critical-bg)',
+          border: `1px solid ${connected ? 'var(--live-border)' : 'var(--critical-border)'}`,
         }}>
           <span
             style={{
               width: '7px',
               height: '7px',
               borderRadius: '50%',
-              background: connected ? '#15803D' : '#DC2626',
+              background: connected ? 'var(--live-text)' : 'var(--critical-text)',
             }}
             className={connected ? 'pulse' : ''}
           />
-          {connected ? <Wifi size={13} color="#15803D" /> : <WifiOff size={13} color="#DC2626" />}
+          {connected ? <Wifi size={13} color="var(--live-text)" /> : <WifiOff size={13} color="var(--critical-text)" />}
           <span style={{
             fontSize: '11px',
             fontWeight: '700',
             fontFamily: 'var(--font-mono)',
-            color: connected ? '#15803D' : '#DC2626',
+            color: connected ? 'var(--live-text)' : 'var(--critical-text)',
           }}>
             {connected ? 'LIVE INGEST' : 'OFFLINE'}
           </span>
@@ -149,9 +152,9 @@ export default function Header({
             onClick={onRefresh}
             disabled={isRefreshing}
             style={{
-              background: '#FFFFFF',
-              border: '1px solid #E2E8F0',
-              color: isRefreshing ? '#2563EB' : '#475569',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              color: isRefreshing ? '#2563EB' : 'var(--text-secondary)',
               padding: '7px 9px',
               borderRadius: '8px',
               cursor: isRefreshing ? 'wait' : 'pointer',
@@ -159,7 +162,7 @@ export default function Header({
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.15s ease',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <RefreshCw
@@ -172,6 +175,46 @@ export default function Header({
           </button>
           <div className="tooltip">
             {isRefreshing ? 'Refreshing live telemetry...' : 'Refresh live threat stream & telemetry'}
+          </div>
+        </div>
+
+        {/* Theme Mode Switcher (Light / Dark) */}
+        <div className="has-tooltip">
+          <button
+            onClick={onToggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 11px',
+              borderRadius: '8px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-primary)',
+              fontWeight: '700',
+              fontSize: '11.5px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              boxShadow: 'var(--shadow-sm)',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--bg-card-border-glow)')}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-subtle)')}
+          >
+            {theme === 'dark' ? (
+              <>
+                <Sun size={14} color="#FBBF24" />
+                <span style={{ fontFamily: 'var(--font-mono)' }}>LIGHT</span>
+              </>
+            ) : (
+              <>
+                <Moon size={14} color="#6366F1" />
+                <span style={{ fontFamily: 'var(--font-mono)' }}>DARK</span>
+              </>
+            )}
+          </button>
+          <div className="tooltip">
+            {theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Obsidian Dark Mode'}
           </div>
         </div>
 
@@ -198,7 +241,7 @@ export default function Header({
           onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
         >
           <Sparkles size={14} color="#FDE047" />
-          <span>✨ Diode Copilot (Air-Gapped LLM)</span>
+          <span>✨ Diode Copilot</span>
         </button>
 
         {/* Pipeline Architecture / Detail Button */}
@@ -210,16 +253,16 @@ export default function Header({
             gap: '5px',
             padding: '7px 12px',
             borderRadius: '8px',
-            background: '#F1F5F9',
-            border: '1px solid #CBD5E1',
-            color: '#1E293B',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-primary)',
             fontWeight: '600',
             fontSize: '12px',
             cursor: 'pointer',
             transition: 'background 0.15s',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E2E8F0')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-surface-hover)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-card)')}
         >
           <Activity size={13} color="#2563EB" />
           <span>Pipeline Detail</span>
@@ -235,16 +278,16 @@ export default function Header({
             gap: '6px',
             padding: '7px 12px',
             borderRadius: '8px',
-            background: '#F1F5F9',
-            border: '1px solid #CBD5E1',
-            color: '#1E293B',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-primary)',
             fontWeight: '600',
             fontSize: '12px',
             cursor: 'pointer',
             transition: 'background 0.15s',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E2E8F0')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-surface-hover)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-card)')}
         >
           <Bell size={13} color="#EA580C" />
           <span>Alert Channels</span>
@@ -260,25 +303,25 @@ export default function Header({
             gap: '7px',
             padding: '7px 14px',
             borderRadius: '8px',
-            background: '#0F172A',
+            background: 'linear-gradient(135deg, #0F172A, #1E293B)',
             color: '#FFFFFF',
             fontWeight: '600',
             fontSize: '12px',
             cursor: isSimulating ? 'wait' : 'pointer',
-            border: 'none',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'var(--shadow-sm)',
             opacity: isSimulating ? 0.8 : 1,
-            transition: 'background 0.15s',
+            transition: 'opacity 0.15s',
           }}
-          onMouseEnter={(e) => !isSimulating && (e.currentTarget.style.backgroundColor = '#1E293B')}
-          onMouseLeave={(e) => !isSimulating && (e.currentTarget.style.backgroundColor = '#0F172A')}
+          onMouseEnter={(e) => !isSimulating && (e.currentTarget.style.opacity = '0.9')}
+          onMouseLeave={(e) => !isSimulating && (e.currentTarget.style.opacity = '1')}
         >
           {isSimulating ? (
             <RefreshCw size={13} style={{ animation: 'spin 0.6s linear infinite' }} />
           ) : (
             <Zap size={13} color="#38BDF8" />
           )}
-          <span>{isSimulating ? 'Simulating...' : 'Simulate Demo Attack'}</span>
+          <span>{isSimulating ? 'Simulating...' : 'Simulate Attack'}</span>
           <span style={{
             fontSize: '9px',
             fontWeight: '800',
@@ -301,7 +344,7 @@ export default function Header({
             display: 'flex',
             alignItems: 'center',
             gap: '3px',
-            color: '#64748B',
+            color: 'var(--text-secondary)',
             textDecoration: 'none',
             fontSize: '11.5px',
             fontWeight: '600',

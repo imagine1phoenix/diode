@@ -77,15 +77,15 @@ export default function TimelineAreaChart({ timeline = [] }) {
     },
     scales: {
       x: {
-        grid: { color: '#F1F5F9' },
-        ticks: { color: '#64748B', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 6 },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94A3B8', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 6 },
         border: { display: false },
       },
       y: {
         beginAtZero: true,
-        grid: { color: '#F1F5F9' },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
         ticks: {
-          color: '#64748B',
+          color: '#94A3B8',
           font: { family: 'JetBrains Mono', size: 9 },
           maxTicksLimit: 5,
           callback: (v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v),
@@ -98,10 +98,10 @@ export default function TimelineAreaChart({ timeline = [] }) {
   return (
     <div className="glass-panel" style={{ padding: '16px 18px', height: '180px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)' }}>
           Threat Velocity Stream
         </h3>
-        <span style={{ fontSize: '11px', color: '#64748B', fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontWeight: '600' }}>
           Sliding Rate
         </span>
       </div>

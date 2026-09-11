@@ -10,9 +10,11 @@ import AITriageDrawer from './components/AITriageDrawer';
 import PipelineInspectorModal from './components/PipelineInspectorModal';
 import NotificationModal from './components/NotificationModal';
 import { useAlertStream } from './hooks/useAlertStream';
+import { useTheme } from './hooks/useTheme';
 import { List, Globe2, Bot, Activity, Zap, Sparkles, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 
 export default function App() {
+  const { theme, isDark, toggleTheme } = useTheme();
   const {
     alerts,
     stats,
@@ -102,6 +104,8 @@ export default function App() {
         onOpenCopilot={handleOpenCopilot}
         onOpenNotifications={() => setIsNotificationOpen(true)}
         onRefresh={refresh}
+        theme={theme}
+        onToggleTheme={toggleTheme}
         isRefreshing={isRefreshing}
         isSimulating={isSimulating}
       />
@@ -155,9 +159,9 @@ export default function App() {
         <div style={{
           margin: '0 0 18px',
           borderRadius: '14px',
-          background: '#FFFFFF',
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.04)',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: 'var(--shadow-card)',
           overflow: 'hidden',
           transition: 'all 0.2s ease',
         }}>
@@ -183,10 +187,10 @@ export default function App() {
                 background: isSimulating ? '#0284C7' : '#15803D',
                 flexShrink: 0,
               }} className={isSimulating ? 'pulse' : ''} />
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#0F172A', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
                 Pipeline Architecture:
               </span>
-              <span style={{ fontSize: '11px', color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: '500' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: '500' }}>
                 Optical Tap (Rx) ➔ 5-Tuple Assembler ➔ Feature Math ➔ Multi-Threat AI ➔ SOC Dispatch
               </span>
             </div>
@@ -350,11 +354,11 @@ export default function App() {
           <div style={{
             display: 'inline-flex',
             gap: '4px',
-            background: '#FFFFFF',
+            background: 'var(--bg-card)',
             padding: '4px',
             borderRadius: '10px',
-            border: '1px solid #CBD5E1',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'var(--shadow-sm)',
           }}>
             <button
               onClick={() => handleTabChange('feed')}
@@ -365,8 +369,8 @@ export default function App() {
                 padding: '6px 14px',
                 borderRadius: '6px',
                 border: 'none',
-                background: activeTab === 'feed' ? '#0F172A' : 'transparent',
-                color: activeTab === 'feed' ? '#FFFFFF' : '#64748B',
+                background: activeTab === 'feed' ? (isDark ? '#2563EB' : '#0F172A') : 'transparent',
+                color: activeTab === 'feed' ? '#FFFFFF' : 'var(--text-secondary)',
                 fontWeight: '700',
                 fontSize: '12px',
                 cursor: 'pointer',
@@ -387,7 +391,7 @@ export default function App() {
                 borderRadius: '6px',
                 border: 'none',
                 background: activeTab === 'map' ? '#2563EB' : 'transparent',
-                color: activeTab === 'map' ? '#FFFFFF' : '#64748B',
+                color: activeTab === 'map' ? '#FFFFFF' : 'var(--text-secondary)',
                 fontWeight: '700',
                 fontSize: '12px',
                 cursor: 'pointer',
@@ -408,14 +412,14 @@ export default function App() {
               gap: '6px',
               padding: '7px 14px',
               borderRadius: '8px',
-              background: showRadar ? '#0F172A' : '#FFFFFF',
-              border: '1px solid #CBD5E1',
-              color: showRadar ? '#FFFFFF' : '#1E293B',
-              fontSize: '12px',
+              background: showRadar ? (isDark ? '#1E293B' : '#EFF6FF') : 'var(--bg-card)',
+              border: `1px solid ${showRadar ? '#3B82F6' : 'var(--border-subtle)'}`,
+              color: showRadar ? (isDark ? '#60A5FA' : '#1D4ED8') : 'var(--text-primary)',
               fontWeight: '700',
+              fontSize: '12px',
               cursor: 'pointer',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-              transition: 'all 0.15s ease',
+              transition: 'all 0.15s',
+              boxShadow: 'var(--shadow-sm)',
             }}
           >
             <BarChart3 size={14} color={showRadar ? '#38BDF8' : '#2563EB'} />

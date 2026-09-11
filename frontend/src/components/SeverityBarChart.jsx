@@ -49,12 +49,12 @@ export default function SeverityBarChart({ severityStats = {} }) {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#64748B', font: { family: 'Inter', size: 10, weight: '600' } },
-        border: { color: '#E2E8F0' },
+        ticks: { color: '#94A3B8', font: { family: 'Inter', size: 10, weight: '600' } },
+        border: { color: 'rgba(148, 163, 184, 0.2)' },
       },
       y: {
-        grid: { color: '#F1F5F9' },
-        ticks: { color: '#64748B', font: { family: 'JetBrains Mono', size: 9 }, precision: 0 },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { color: '#94A3B8', font: { family: 'JetBrains Mono', size: 9 }, precision: 0 },
         border: { display: false },
       },
     },
@@ -63,10 +63,10 @@ export default function SeverityBarChart({ severityStats = {} }) {
   return (
     <div className="glass-panel" style={{ padding: '16px 18px', height: '190px', display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <h3 style={{ fontSize: '13px', fontWeight: '800', color: '#0F172A' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-primary)' }}>
           Alerts by Severity Tier
         </h3>
-        <span style={{ fontSize: '11px', color: '#64748B', fontWeight: '500' }}>
+        <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: '500' }}>
           Urgency Classification
         </span>
       </div>
