@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   X, Play, Pause, ChevronRight, ChevronLeft, Shield, Cpu, Activity,
   Brain, CheckCircle2, Zap, Terminal, Sparkles, RefreshCw, Eye,
-  ArrowRight, Radio, Globe, ShieldAlert, ArrowUpRight, Check, AlertTriangle
+  ArrowRight, Radio, Globe, ShieldAlert, ArrowUpRight, Check, AlertTriangle,
+  Layers, Clock, Gauge
 } from 'lucide-react';
 import { THREAT_CONFIG } from './ThreatDonutChart';
 
@@ -12,7 +13,7 @@ export const PIPELINE_STAGES = [
     title: 'Data Diode Tap',
     subtitle: 'Physical Hardware Ingest',
     icon: Shield,
-    color: '#06b6d4',
+    color: '#0284C7',
     badge: 'AST Isolated • Zero TX',
     summary: 'Passive optical tap receives simulated unidirectional flux with strict physical and architectural prohibition of outbound packets.',
     details: [
@@ -28,7 +29,7 @@ export const PIPELINE_STAGES = [
     title: '5-Tuple Flow Assembler',
     subtitle: 'Temporal Sliding Window',
     icon: Cpu,
-    color: '#6366f1',
+    color: '#4F46E5',
     badge: 'O(1) Hash Map • 10s Window',
     summary: 'Collates disparate raw ethernet frames into bidirectional or unidirectional IP 5-tuples and slices them into temporal analysis windows.',
     details: [
@@ -44,14 +45,14 @@ export const PIPELINE_STAGES = [
     title: 'Feature Extraction Engine',
     subtitle: 'DSP & Information Theory',
     icon: Activity,
-    color: '#a855f7',
+    color: '#7C3AED',
     badge: 'Entropy + FFT Spectral',
     summary: 'Calculates information-theoretic entropy, Fast Fourier Transform (FFT) spectral power density, byte asymmetry, and n-gram likelihoods.',
     details: [
       { label: 'Shannon Entropy', value: 'H(X) = -Σ p(x) log2 p(x) (IP & DNS lexical)' },
       { label: 'Periodicity (FFT)', value: 'FFT dominant peak frequency & autocorrelation' },
       { label: 'Asymmetry Ratio', value: 'Outbound/Inbound bytes & Egress density' },
-      { label: 'N-Gram Log-Likelihood', value: 'Bigram English transition matrix' },
+      { label: 'N-Gram Likelihood', value: 'Bigram English transition matrix log-odds' },
     ],
     highlightCode: '# Shannon Entropy & FFT Periodicity\nH = -sum(p * np.log2(p) for p in freq.values())\nfft_vals = np.abs(np.fft.rfft(iat_series))\npeak_hz = freqs[np.argmax(fft_vals[1:]) + 1]\nautocorr = np.corrcoef(iat[:-1], iat[1:])[0, 1]',
   },
@@ -60,7 +61,7 @@ export const PIPELINE_STAGES = [
     title: 'Multi-Threat AI & ML',
     subtitle: 'Supervised + Unsupervised Enclave',
     icon: Brain,
-    color: '#ec4899',
+    color: '#DB2777',
     badge: 'Random Forest + Isolation Forest',
     summary: 'Routes flow vectors to specialized ML models and statistical signal detectors without requiring payload decryption.',
     details: [
@@ -73,10 +74,10 @@ export const PIPELINE_STAGES = [
   },
   {
     id: 5,
-    title: 'Normalized Alert & SOC Dispatch',
+    title: 'Normalized Alert & Dispatch',
     subtitle: 'PRD §6 Standardized Delivery',
     icon: CheckCircle2,
-    color: '#10b981',
+    color: '#15803D',
     badge: 'SQLite WAL • WebSocket Stream',
     summary: 'Normalizes detections into the PRD §6 standardized JSON alert schema, commits to SQLite WAL, and broadcasts live over WebSockets.',
     details: [
@@ -92,7 +93,7 @@ export const PIPELINE_STAGES = [
 const SCENARIO_DETAILS = {
   all: {
     name: 'Combined Threat Scenario Suite',
-    color: '#6366f1',
+    color: '#2563EB',
     description: 'Multi-vector blend: SYN flood, port sweep, C2 periodic beacon, DGA domain queries, and exfiltration bursts.',
     targetClass: 'All 6 Threat Vectors',
     featuresTriggered: ['high_flow_rate', 'fft_spectral_peak', 'high_entropy', 'asymmetric_egress', 'port_fanout'],
@@ -100,7 +101,7 @@ const SCENARIO_DETAILS = {
   },
   ddos: {
     name: 'Volumetric SYN & UDP Flood',
-    color: THREAT_CONFIG.ddos.color,
+    color: '#DC2626',
     description: 'Massive packet arrival velocity with near-zero source IP entropy and high SYN/ACK ratio.',
     targetClass: 'ddos (MITRE T1498)',
     featuresTriggered: ['flow_arrival_rate > 1000/s', 'src_ip_entropy < 0.50', 'syn_ratio > 0.90'],
@@ -108,7 +109,7 @@ const SCENARIO_DETAILS = {
   },
   recon_scan: {
     name: 'Reconnaissance & Subnet Sweep',
-    color: THREAT_CONFIG.recon_scan.color,
+    color: '#D97706',
     description: 'Single source probing high-cardinality destination ports and horizontal subnet sweeps with tiny sub-100B flows.',
     targetClass: 'recon_scan (MITRE T1595)',
     featuresTriggered: ['distinct_dst_ports > 30', 'distinct_targets > 20', 'avg_bytes_per_flow < 100'],
@@ -116,7 +117,7 @@ const SCENARIO_DETAILS = {
   },
   c2_beaconing: {
     name: 'Botnet C2 Periodic Beaconing',
-    color: THREAT_CONFIG.c2_beaconing.color,
+    color: '#4F46E5',
     description: 'Low-jitter periodic callbacks to remote command server detected via FFT spectral power density and autocorrelation.',
     targetClass: 'c2_beaconing (MITRE T1071)',
     featuresTriggered: ['fft_dominant_peak_hz', 'autocorrelation_coeff > 0.70', 'jitter_cov < 0.15'],
@@ -124,7 +125,7 @@ const SCENARIO_DETAILS = {
   },
   dga_dns: {
     name: 'DGA Domains & DNS Tunnelling',
-    color: THREAT_CONFIG.dga_dns.color,
+    color: '#0284C7',
     description: 'Algorithmically generated pseudo-random domains scored using character Shannon entropy and English bigram probabilities.',
     targetClass: 'dga_dns (MITRE T1568)',
     featuresTriggered: ['domain_entropy > 3.80', 'ngram_likelihood < -18.5', 'random_forest_score > 0.90'],
@@ -132,7 +133,7 @@ const SCENARIO_DETAILS = {
   },
   exfiltration: {
     name: 'Data Exfiltration (Egress Spike)',
-    color: THREAT_CONFIG.exfiltration.color,
+    color: '#059669',
     description: 'Unusual sustained outbound data transfer with heavy egress payload density and high outbound/inbound byte asymmetry.',
     targetClass: 'exfiltration (MITRE T1048)',
     featuresTriggered: ['egress_payload_density > 0.80', 'isolation_forest_anomaly < 0', 'byte_ratio > 50'],
@@ -147,10 +148,11 @@ export default function PipelineInspectorModal({
   simulationResult = null,
   onRunSimulation = null,
   onInspectAlert = null,
+  initialStage = 1,
 }) {
-  const [currentStage, setCurrentStage] = useState(1);
+  const [currentStage, setCurrentStage] = useState(initialStage || 1);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [playbackSpeed, setPlaybackSpeed] = useState(2200); // ms per stage in auto-play
+  const [playbackSpeed, setPlaybackSpeed] = useState(2500); // ms per stage in auto-play
   const [selectedScenario, setSelectedScenario] = useState(scenario || 'all');
   const [isSimulatingInternal, setIsSimulatingInternal] = useState(false);
   const [internalResult, setInternalResult] = useState(simulationResult);
@@ -161,6 +163,13 @@ export default function PipelineInspectorModal({
   useEffect(() => {
     if (scenario) setSelectedScenario(scenario);
   }, [scenario]);
+
+  // Sync initialStage
+  useEffect(() => {
+    if (isOpen && initialStage) {
+      setCurrentStage(initialStage);
+    }
+  }, [isOpen, initialStage]);
 
   useEffect(() => {
     if (simulationResult) setInternalResult(simulationResult);
@@ -280,34 +289,34 @@ export default function PipelineInspectorModal({
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(3, 7, 18, 0.88)',
-      backdropFilter: 'blur(12px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 110,
-      padding: '16px',
-    }}
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(15, 23, 42, 0.65)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 110,
+        padding: '16px',
+      }}
       onClick={onClose}
     >
       <div
-        className="glass-panel"
         style={{
           width: '100%',
-          maxWidth: '1080px',
+          maxWidth: '1120px',
           maxHeight: '92vh',
           display: 'flex',
           flexDirection: 'column',
-          background: '#0a0f1d',
-          border: '1px solid rgba(99, 102, 241, 0.4)',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(99, 102, 241, 0.15)',
-          borderRadius: 'var(--radius-lg)',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 25px 65px -12px rgba(15, 23, 42, 0.25), 0 0 1px 1px rgba(15, 23, 42, 0.05)',
+          borderRadius: '20px',
           overflow: 'hidden',
           position: 'relative',
         }}
@@ -316,44 +325,45 @@ export default function PipelineInspectorModal({
         {/* Top Header Bar */}
         <div style={{
           padding: '16px 24px',
-          borderBottom: '1px solid var(--bg-card-border)',
+          borderBottom: '1px solid #E2E8F0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: 'rgba(15, 23, 42, 0.7)',
+          background: '#FFFFFF',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{
               width: '42px',
               height: '42px',
-              borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, #6366f1, #06b6d4)',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #2563EB, #0284C7)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 0 16px rgba(99, 102, 241, 0.4)',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+              flexShrink: 0,
             }}>
-              <Zap size={22} color="#ffffff" />
+              <Zap size={22} color="#FFFFFF" />
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.02em' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', letterSpacing: '-0.02em', margin: 0 }}>
                   Live Pipeline Inspector & Jury Walkthrough
                 </h2>
                 <span style={{
-                  fontSize: '10px',
+                  fontSize: '11px',
                   fontWeight: '700',
-                  padding: '2px 8px',
-                  borderRadius: 'var(--radius-full)',
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  color: 'var(--accent-emerald)',
-                  border: '1px solid rgba(16, 185, 129, 0.3)',
-                  letterSpacing: '0.05em',
+                  padding: '3px 9px',
+                  borderRadius: '9999px',
+                  background: '#DCFCE7',
+                  color: '#15803D',
+                  border: '1px solid #BBF7D0',
+                  letterSpacing: '0.04em',
                 }}>
                   HOW IT WORKS
                 </span>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              <p style={{ fontSize: '12.5px', color: '#64748B', margin: '2px 0 0', fontWeight: '500' }}>
                 Step-by-step visual demonstration of the unidirectional data diode ingestion, feature extraction & ML classification pipeline
               </p>
             </div>
@@ -361,33 +371,51 @@ export default function PipelineInspectorModal({
 
           <button
             onClick={onClose}
+            aria-label="Close Inspector"
             style={{
-              background: 'transparent',
+              background: '#F1F5F9',
               border: 'none',
-              color: 'var(--text-muted)',
+              color: '#64748B',
               cursor: 'pointer',
-              padding: '6px',
-              borderRadius: 'var(--radius-sm)',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#E2E8F0';
+              e.currentTarget.style.color = '#0F172A';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#F1F5F9';
+              e.currentTarget.style.color = '#64748B';
             }}
           >
-            <X size={22} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Threat Scenario Selector Strip */}
         <div style={{
           padding: '10px 24px',
-          background: 'rgba(10, 15, 29, 0.85)',
-          borderBottom: '1px solid var(--bg-card-border)',
+          background: '#F8FAFC',
+          borderBottom: '1px solid #E2E8F0',
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          gap: '10px',
           overflowX: 'auto',
         }}>
-          <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+          <span style={{
+            fontSize: '11px',
+            fontWeight: '800',
+            color: '#64748B',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            whiteSpace: 'nowrap',
+          }}>
             Simulated Threat Vector:
           </span>
           {Object.entries(SCENARIO_DETAILS).map(([id, info]) => {
@@ -398,36 +426,45 @@ export default function PipelineInspectorModal({
                 onClick={() => handleScenarioChange(id)}
                 disabled={isSimulatingInternal}
                 style={{
-                  padding: '5px 12px',
-                  borderRadius: 'var(--radius-full)',
-                  border: `1px solid ${isSelected ? info.color : 'rgba(148, 163, 184, 0.18)'}`,
-                  background: isSelected ? `${info.color}22` : 'rgba(15, 23, 42, 0.5)',
-                  color: isSelected ? '#ffffff' : 'var(--text-secondary)',
-                  fontSize: '11px',
-                  fontWeight: isSelected ? '700' : '500',
-                  cursor: 'pointer',
+                  padding: '6px 13px',
+                  borderRadius: '9999px',
+                  border: isSelected ? `1.5px solid ${info.color}` : '1px solid #CBD5E1',
+                  background: isSelected ? '#EFF6FF' : '#FFFFFF',
+                  color: isSelected ? '#1D4ED8' : '#475569',
+                  fontSize: '11.5px',
+                  fontWeight: isSelected ? '700' : '600',
+                  cursor: isSimulatingInternal ? 'wait' : 'pointer',
                   whiteSpace: 'nowrap',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.15s',
+                  gap: '7px',
+                  boxShadow: isSelected ? '0 1px 3px rgba(37, 99, 235, 0.12)' : '0 1px 2px rgba(0,0,0,0.02)',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: info.color }} />
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: info.color }} />
                 <span>{info.name.split(' (')[0].split(' &')[0]}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Scrollable Main Area */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Scrollable Main Workspace */}
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '20px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '18px',
+          background: '#F8FAFC',
+        }}>
 
-          {/* 5-Stage Interactive Flow Ribbon */}
+          {/* 5-Stage Connected Stepper Ribbon */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: '8px',
+            gap: '10px',
             position: 'relative',
           }}>
             {PIPELINE_STAGES.map((stg) => {
@@ -446,22 +483,23 @@ export default function PipelineInspectorModal({
                     display: 'flex',
                     flexDirection: 'column',
                     padding: '12px 14px',
-                    borderRadius: 'var(--radius-md)',
+                    borderRadius: '12px',
                     background: isActive
-                      ? 'rgba(99, 102, 241, 0.18)'
+                      ? '#FFFFFF'
                       : isPast
-                        ? 'rgba(16, 185, 129, 0.08)'
-                        : 'rgba(15, 23, 42, 0.45)',
-                    border: `1px solid ${isActive
-                        ? stg.color
-                        : isPast
-                          ? 'rgba(16, 185, 129, 0.35)'
-                          : 'rgba(148, 163, 184, 0.12)'
-                      }`,
+                        ? '#F0FDF4'
+                        : '#FFFFFF',
+                    border: isActive
+                      ? '2px solid #2563EB'
+                      : isPast
+                        ? '1px solid #86EFAC'
+                        : '1px solid #E2E8F0',
                     cursor: 'pointer',
                     position: 'relative',
                     transition: 'all 0.2s ease',
-                    boxShadow: isActive ? `0 0 16px ${stg.color}33` : 'none',
+                    boxShadow: isActive
+                      ? '0 4px 14px rgba(37, 99, 235, 0.18)'
+                      : '0 1px 2px rgba(0, 0, 0, 0.02)',
                   }}
                 >
                   {/* Top Step Counter & Indicator */}
@@ -471,42 +509,58 @@ export default function PipelineInspectorModal({
                       height: '26px',
                       borderRadius: '50%',
                       background: isActive
-                        ? stg.color
+                        ? '#2563EB'
                         : isPast
-                          ? 'var(--accent-emerald)'
-                          : 'rgba(255, 255, 255, 0.08)',
-                      color: isActive || isPast ? '#ffffff' : 'var(--text-muted)',
+                          ? '#15803D'
+                          : '#F1F5F9',
+                      color: isActive || isPast ? '#FFFFFF' : '#64748B',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontSize: '11px',
-                      fontWeight: '700',
+                      fontWeight: '800',
+                      border: isActive || isPast ? 'none' : '1px solid #CBD5E1',
                     }}>
-                      {isPast ? <Check size={14} /> : stg.id}
+                      {isPast ? <Check size={14} strokeWidth={3} /> : stg.id}
                     </div>
 
                     {isActive && (
                       <span style={{
-                        fontSize: '9px',
-                        padding: '1px 6px',
-                        borderRadius: 'var(--radius-full)',
-                        background: `${stg.color}33`,
-                        color: stg.color,
-                        fontWeight: '700',
+                        fontSize: '9.5px',
+                        padding: '2px 7px',
+                        borderRadius: '9999px',
+                        background: '#EFF6FF',
+                        color: '#1D4ED8',
+                        border: '1px solid #BFDBFE',
+                        fontWeight: '800',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
+                        letterSpacing: '0.04em',
                       }}>
                         ACTIVE
+                      </span>
+                    )}
+                    {isPast && (
+                      <span style={{
+                        fontSize: '9.5px',
+                        padding: '2px 7px',
+                        borderRadius: '9999px',
+                        background: '#DCFCE7',
+                        color: '#15803D',
+                        border: '1px solid #BBF7D0',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                      }}>
+                        VERIFIED
                       </span>
                     )}
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
-                    <Icon size={14} color={isActive ? stg.color : isPast ? 'var(--accent-emerald)' : 'var(--text-muted)'} />
+                    <Icon size={14} color={isActive ? '#2563EB' : isPast ? '#15803D' : '#64748B'} />
                     <span style={{
                       fontSize: '12px',
-                      fontWeight: '700',
-                      color: isActive ? '#ffffff' : isPast ? 'var(--text-primary)' : 'var(--text-secondary)',
+                      fontWeight: isActive ? '800' : '700',
+                      color: isActive ? '#0F172A' : isPast ? '#166534' : '#334155',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -515,7 +569,14 @@ export default function PipelineInspectorModal({
                     </span>
                   </div>
 
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{
+                    fontSize: '10.5px',
+                    color: isActive ? '#2563EB' : isPast ? '#15803D' : '#64748B',
+                    fontWeight: isActive ? '600' : '500',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
                     {stg.subtitle}
                   </div>
                 </div>
@@ -525,35 +586,36 @@ export default function PipelineInspectorModal({
 
           {/* Active Stage Deep-Dive Spotlight Card */}
           <div style={{
-            background: 'rgba(15, 23, 42, 0.75)',
-            borderRadius: 'var(--radius-md)',
-            border: `1px solid ${currentStageData.color}55`,
-            boxShadow: `0 0 25px ${currentStageData.color}18`,
-            padding: '20px',
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+            padding: '20px 22px',
             position: 'relative',
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', marginBottom: '16px' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                   <span style={{
                     fontSize: '11px',
-                    fontWeight: '700',
-                    padding: '2px 8px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: `${currentStageData.color}25`,
-                    color: currentStageData.color,
-                    border: `1px solid ${currentStageData.color}40`,
+                    fontWeight: '800',
+                    padding: '3px 9px',
+                    borderRadius: '6px',
+                    background: '#EFF6FF',
+                    color: '#1D4ED8',
+                    border: '1px solid #DBEAFE',
+                    letterSpacing: '0.04em',
                   }}>
                     STAGE {currentStageData.id} OF 5
                   </span>
-                  <span style={{ fontSize: '16px', fontWeight: '700', color: '#ffffff' }}>
+                  <span style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A' }}>
                     {currentStageData.title}
                   </span>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: '13px', color: '#64748B', fontWeight: '600' }}>
                     • {currentStageData.subtitle}
                   </span>
                 </div>
-                <p style={{ fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '720px' }}>
+                <p style={{ fontSize: '13px', color: '#475569', maxWidth: '780px', margin: 0, lineHeight: '1.5' }}>
                   {currentStageData.summary}
                 </p>
               </div>
@@ -561,100 +623,146 @@ export default function PipelineInspectorModal({
               {/* Stage Badge */}
               <div style={{
                 padding: '6px 14px',
-                borderRadius: 'var(--radius-full)',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#ffffff',
+                borderRadius: '9999px',
+                background: '#F1F5F9',
+                border: '1px solid #CBD5E1',
+                color: '#1E293B',
                 fontSize: '11px',
-                fontWeight: '600',
+                fontWeight: '700',
                 whiteSpace: 'nowrap',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
               }}>
                 {currentStageData.badge}
               </div>
             </div>
 
             {/* Split Inspection Details & Code/Formulas */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.1fr) minmax(0, 0.9fr)', gap: '18px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 0.95fr)', gap: '18px' }}>
 
               {/* Telemetry Metrics Grid */}
               <div style={{
-                background: 'rgba(10, 15, 28, 0.7)',
-                padding: '14px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--bg-card-border)',
+                background: '#F8FAFC',
+                padding: '16px',
+                borderRadius: '12px',
+                border: '1px solid #E2E8F0',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '10px',
+                gap: '12px',
               }}>
-                <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Engineering Verification & Telemetry
+                <div style={{
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  color: '#475569',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}>
+                  <Gauge size={13} color="#2563EB" />
+                  <span>Engineering Verification & Telemetry</span>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {currentStageData.details.map((dt, idx) => (
                     <div key={idx} style={{
-                      background: 'rgba(15, 23, 42, 0.5)',
-                      padding: '8px 10px',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid rgba(148, 163, 184, 0.1)',
+                      background: '#FFFFFF',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #E2E8F0',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
                     }}>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>
+                      <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: '600', marginBottom: '3px' }}>
                         {dt.label}
                       </div>
-                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#ffffff', fontFamily: 'var(--font-mono)' }}>
+                      <div style={{
+                        fontSize: '11.5px',
+                        fontWeight: '700',
+                        color: '#0F172A',
+                        fontFamily: 'var(--font-mono)',
+                        lineHeight: '1.35',
+                        wordBreak: 'break-word',
+                      }}>
                         {dt.value}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Scenario specific callout */}
+                {/* Scenario specific callout with perfect contrast */}
                 <div style={{
-                  marginTop: '4px',
-                  padding: '8px 12px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: `${scInfo.color}15`,
-                  border: `1px solid ${scInfo.color}35`,
+                  marginTop: '2px',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '10px',
                 }}>
-                  <Sparkles size={14} color={scInfo.color} />
-                  <div style={{ fontSize: '11px', color: 'var(--text-primary)' }}>
-                    <strong style={{ color: scInfo.color }}>Active Scenario:</strong> {scInfo.name} — targeting{' '}
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: '600' }}>{scInfo.targetClass}</span>
+                  <Sparkles size={16} color="#2563EB" style={{ flexShrink: 0 }} />
+                  <div style={{ fontSize: '12px', color: '#1E293B', lineHeight: '1.4' }}>
+                    <strong style={{ color: '#1D4ED8', fontWeight: '800' }}>Active Scenario:</strong>{' '}
+                    <span style={{ fontWeight: '700', color: '#0F172A' }}>{scInfo.name}</span> — targeting{' '}
+                    <span style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: '700',
+                      color: '#1E40AF',
+                      background: '#DBEAFE',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                    }}>
+                      {scInfo.targetClass}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Code / Mathematical Logic Box */}
+              {/* Code / Mathematical Logic Box (Dark Developer Editor) */}
               <div style={{
-                background: '#070b14',
-                padding: '14px',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--bg-card-border)',
+                background: '#0F172A',
+                borderRadius: '12px',
+                border: '1px solid #1E293B',
                 display: 'flex',
                 flexDirection: 'column',
+                overflow: 'hidden',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '600', color: 'var(--accent-cyan)' }}>
-                    <Terminal size={12} />
-                    <span>Pipeline Implementation Logic</span>
+                {/* Editor Header Bar */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 14px',
+                  background: '#090D16',
+                  borderBottom: '1px solid #1E293B',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                      <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#EF4444' }} />
+                      <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#F59E0B' }} />
+                      <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: '#10B981' }} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', color: '#38BDF8', marginLeft: '6px' }}>
+                      <Terminal size={12} />
+                      <span>Pipeline Implementation Logic</span>
+                    </div>
                   </div>
-                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Python 3.11+ / Scikit-Learn / NumPy</span>
+                  <span style={{ fontSize: '10.5px', color: '#94A3B8', fontFamily: 'var(--font-mono)' }}>
+                    Python 3.11+ / Scikit-Learn / NumPy
+                  </span>
                 </div>
 
                 <pre style={{
                   flex: 1,
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  color: '#cbd5e1',
-                  background: 'rgba(0, 0, 0, 0.4)',
-                  padding: '10px',
-                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '11.5px',
+                  color: '#F8FAFC',
+                  background: '#0F172A',
+                  padding: '14px 16px',
                   overflowX: 'auto',
-                  lineHeight: '1.45',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  lineHeight: '1.55',
                   margin: 0,
                 }}>
                   {currentStageData.highlightCode}
@@ -666,22 +774,23 @@ export default function PipelineInspectorModal({
             {currentStage === 5 && sampleAlert && (
               <div style={{
                 marginTop: '16px',
-                background: 'rgba(16, 185, 129, 0.08)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '12px 16px',
+                background: '#F0FDF4',
+                border: '1.5px solid #86EFAC',
+                borderRadius: '10px',
+                padding: '12px 18px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '16px',
+                boxShadow: '0 2px 6px rgba(21, 128, 61, 0.08)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <CheckCircle2 size={20} color="var(--accent-emerald)" />
+                  <CheckCircle2 size={22} color="#15803D" />
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: '700', color: '#ffffff' }}>
+                    <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#166534' }}>
                       Alert Successfully Emitted & Persisted: {sampleAlert.threat_class?.toUpperCase()} ({sampleAlert.severity?.toUpperCase()})
                     </div>
-                    <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                    <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#15803D', marginTop: '2px' }}>
                       Flow: {sampleAlert.flow_id} • Confidence: {Math.round((sampleAlert.confidence || 0) * 100)}%
                     </div>
                   </div>
@@ -697,17 +806,21 @@ export default function PipelineInspectorModal({
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      padding: '6px 14px',
-                      borderRadius: 'var(--radius-sm)',
-                      background: 'var(--accent-emerald)',
-                      color: '#000000',
+                      padding: '7px 16px',
+                      borderRadius: '8px',
+                      background: '#15803D',
+                      color: '#FFFFFF',
                       border: 'none',
                       fontWeight: '700',
-                      fontSize: '11px',
+                      fontSize: '11.5px',
                       cursor: 'pointer',
+                      boxShadow: '0 2px 4px rgba(21, 128, 61, 0.2)',
+                      transition: 'background 0.15s ease',
                     }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#166534'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#15803D'; }}
                   >
-                    <Eye size={13} />
+                    <Eye size={14} />
                     <span>Inspect Forensics in Modal</span>
                   </button>
                 )}
@@ -717,19 +830,29 @@ export default function PipelineInspectorModal({
 
           {/* Real-time Streaming Terminal Console */}
           <div style={{
-            background: '#060a12',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--bg-card-border)',
-            padding: '12px 16px',
+            background: '#0F172A',
+            borderRadius: '12px',
+            border: '1px solid #1E293B',
+            padding: '14px 18px',
+            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.08)',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-emerald)' }} className="pulse" />
-                <span style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22C55E' }} className="pulse" />
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Real-Time Pipeline Execution Log (Live Diode Stream)
                 </span>
               </div>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              <span style={{
+                fontSize: '10.5px',
+                color: '#38BDF8',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: '700',
+                background: 'rgba(56, 189, 248, 0.1)',
+                padding: '2px 8px',
+                borderRadius: '4px',
+                border: '1px solid rgba(56, 189, 248, 0.2)',
+              }}>
                 LATENCY: &lt; 1.1s
               </span>
             </div>
@@ -737,26 +860,29 @@ export default function PipelineInspectorModal({
             <div
               ref={consoleRef}
               style={{
-                height: '95px',
+                height: '96px',
                 overflowY: 'auto',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                color: '#94a3b8',
+                fontSize: '11.5px',
+                color: '#CBD5E1',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '3px',
+                gap: '4px',
                 paddingRight: '6px',
               }}
             >
               {consoleLogs.map((log, idx) => (
                 <div key={idx} style={{
                   color: log.includes('[SUCCESS]') || log.includes('[NORMALIZER]')
-                    ? 'var(--accent-emerald)'
+                    ? '#4ADE80'
                     : log.includes('[DETECTION]') || log.includes('[AI_INFERENCE]')
-                      ? 'var(--accent-cyan)'
+                      ? '#22D3EE'
                       : log.includes('[ISOLATION]')
-                        ? '#f59e0b'
-                        : '#cbd5e1',
+                        ? '#FBBF24'
+                        : log.includes('[DSP]') || log.includes('[FEATURE]')
+                          ? '#C084FC'
+                          : '#E2E8F0',
+                  lineHeight: '1.4',
                 }}>
                   {log}
                 </div>
@@ -768,31 +894,34 @@ export default function PipelineInspectorModal({
         {/* Bottom Playback & Demonstration Controls */}
         <div style={{
           padding: '14px 24px',
-          borderTop: '1px solid var(--bg-card-border)',
-          background: 'rgba(10, 15, 29, 0.95)',
+          borderTop: '1px solid #E2E8F0',
+          background: '#FFFFFF',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
         }}>
           {/* Play / Step Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 16px',
-                borderRadius: 'var(--radius-md)',
-                background: isPlaying ? 'rgba(234, 179, 8, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                border: `1px solid ${isPlaying ? 'rgba(234, 179, 8, 0.35)' : 'rgba(16, 185, 129, 0.35)'}`,
-                color: isPlaying ? '#fbbf24' : 'var(--accent-emerald)',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                background: isPlaying ? '#FEF3C7' : '#DCFCE7',
+                border: isPlaying ? '1px solid #FCD34D' : '1px solid #86EFAC',
+                color: isPlaying ? '#B45309' : '#15803D',
                 fontSize: '12px',
-                fontWeight: '600',
+                fontWeight: '700',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
             >
-              {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+              {isPlaying ? <Pause size={14} strokeWidth={2.5} /> : <Play size={14} strokeWidth={2.5} />}
               <span>{isPlaying ? 'Pause Walkthrough' : 'Auto-Play Walkthrough'}</span>
             </button>
 
@@ -803,17 +932,19 @@ export default function PipelineInspectorModal({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                padding: '7px 12px',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(15, 23, 42, 0.6)',
-                border: '1px solid var(--bg-card-border)',
-                color: currentStage <= 1 ? 'var(--text-muted)' : 'var(--text-primary)',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                background: currentStage <= 1 ? '#F1F5F9' : '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                color: currentStage <= 1 ? '#94A3B8' : '#0F172A',
                 fontSize: '12px',
+                fontWeight: '700',
                 cursor: currentStage <= 1 ? 'not-allowed' : 'pointer',
-                opacity: currentStage <= 1 ? 0.5 : 1,
+                opacity: currentStage <= 1 ? 0.6 : 1,
+                transition: 'all 0.15s ease',
               }}
             >
-              <ChevronLeft size={15} />
+              <ChevronLeft size={16} />
               <span>Previous Stage</span>
             </button>
 
@@ -824,19 +955,21 @@ export default function PipelineInspectorModal({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                padding: '7px 14px',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(99, 102, 241, 0.2)',
-                border: '1px solid rgba(99, 102, 241, 0.4)',
-                color: currentStage >= 5 ? 'var(--text-muted)' : '#ffffff',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                background: currentStage >= 5 ? '#F1F5F9' : '#2563EB',
+                border: currentStage >= 5 ? '1px solid #CBD5E1' : 'none',
+                color: currentStage >= 5 ? '#94A3B8' : '#FFFFFF',
                 fontSize: '12px',
-                fontWeight: '600',
+                fontWeight: '700',
                 cursor: currentStage >= 5 ? 'not-allowed' : 'pointer',
-                opacity: currentStage >= 5 ? 0.5 : 1,
+                boxShadow: currentStage >= 5 ? 'none' : '0 2px 6px rgba(37, 99, 235, 0.25)',
+                opacity: currentStage >= 5 ? 0.6 : 1,
+                transition: 'all 0.15s ease',
               }}
             >
               <span>Next Stage</span>
-              <ChevronRight size={15} />
+              <ChevronRight size={16} />
             </button>
 
             <button
@@ -846,14 +979,18 @@ export default function PipelineInspectorModal({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '7px 12px',
-                borderRadius: 'var(--radius-md)',
-                background: 'transparent',
-                border: '1px solid var(--bg-card-border)',
-                color: 'var(--text-secondary)',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                color: '#475569',
                 fontSize: '12px',
+                fontWeight: '600',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#F8FAFC'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#FFFFFF'; }}
             >
               <RefreshCw size={13} />
               <span>Restart Flow</span>
@@ -862,51 +999,66 @@ export default function PipelineInspectorModal({
 
           {/* Speed & Close Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
-              <span>Step Speed:</span>
-              <button
-                onClick={() => setPlaybackSpeed(3000)}
-                style={{
-                  padding: '3px 8px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: `1px solid ${playbackSpeed === 3000 ? 'var(--accent-indigo)' : 'transparent'}`,
-                  background: playbackSpeed === 3000 ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                  color: playbackSpeed === 3000 ? '#ffffff' : 'var(--text-muted)',
-                  fontSize: '10px',
-                  cursor: 'pointer',
-                }}
-              >
-                1x (Relaxed)
-              </button>
-              <button
-                onClick={() => setPlaybackSpeed(2000)}
-                style={{
-                  padding: '3px 8px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: `1px solid ${playbackSpeed === 2000 ? 'var(--accent-indigo)' : 'transparent'}`,
-                  background: playbackSpeed === 2000 ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
-                  color: playbackSpeed === 2000 ? '#ffffff' : 'var(--text-muted)',
-                  fontSize: '10px',
-                  cursor: 'pointer',
-                }}
-              >
-                1.5x (Demo)
-              </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#64748B', fontWeight: '600' }}>
+              <span>Speed:</span>
+              <div style={{
+                display: 'inline-flex',
+                background: '#E2E8F0',
+                padding: '2px',
+                borderRadius: '8px',
+                border: '1px solid #CBD5E1',
+              }}>
+                <button
+                  onClick={() => setPlaybackSpeed(3000)}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: playbackSpeed === 3000 ? '#FFFFFF' : 'transparent',
+                    color: playbackSpeed === 3000 ? '#0F172A' : '#64748B',
+                    fontWeight: playbackSpeed === 3000 ? '700' : '600',
+                    fontSize: '10.5px',
+                    cursor: 'pointer',
+                    boxShadow: playbackSpeed === 3000 ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  1x (Relaxed)
+                </button>
+                <button
+                  onClick={() => setPlaybackSpeed(1800)}
+                  style={{
+                    padding: '3px 8px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: playbackSpeed === 1800 ? '#FFFFFF' : 'transparent',
+                    color: playbackSpeed === 1800 ? '#0F172A' : '#64748B',
+                    fontWeight: playbackSpeed === 1800 ? '700' : '600',
+                    fontSize: '10.5px',
+                    cursor: 'pointer',
+                    boxShadow: playbackSpeed === 1800 ? '0 1px 2px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  1.5x (Demo)
+                </button>
+              </div>
             </div>
 
             <button
               onClick={onClose}
               style={{
-                padding: '7px 18px',
-                borderRadius: 'var(--radius-md)',
-                background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+                padding: '8px 20px',
+                borderRadius: '8px',
+                background: '#0F172A',
                 border: 'none',
-                color: '#ffffff',
-                fontWeight: '600',
+                color: '#FFFFFF',
+                fontWeight: '700',
                 fontSize: '12px',
                 cursor: 'pointer',
-                boxShadow: '0 0 12px rgba(79, 70, 229, 0.3)',
+                boxShadow: '0 2px 4px rgba(15, 23, 42, 0.15)',
+                transition: 'background 0.15s ease',
               }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#1E293B'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = '#0F172A'; }}
             >
               Close Inspector
             </button>

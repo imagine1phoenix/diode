@@ -31,6 +31,7 @@ export default function App() {
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [inspectorScenario, setInspectorScenario] = useState('all');
   const [inspectorResult, setInspectorResult] = useState(null);
+  const [inspectorStage, setInspectorStage] = useState(1);
 
   // Secondary panel states: Kept collapsed/toggleable so Live Alert Feed remains the primary focal element
   const [showTopology, setShowTopology] = useState(false);
@@ -69,9 +70,10 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  const handleOpenInspectorWithScenario = (scenario, result = null) => {
+  const handleOpenInspectorWithScenario = (scenario, result = null, stage = 1) => {
     setInspectorScenario(scenario || 'all');
     setInspectorResult(result || lastSimulationResult);
+    setInspectorStage(stage || 1);
     setIsInspectorOpen(true);
   };
 
@@ -245,58 +247,88 @@ export default function App() {
               fontSize: '11px',
               flexWrap: 'wrap',
             }}>
-              <span style={{
-                padding: '4px 9px',
-                borderRadius: '6px',
-                background: '#E0F2FE',
-                color: '#0369A1',
-                border: '1px solid #BAE6FD',
-                fontWeight: '700',
-              }}>
+              <span
+                onClick={() => handleOpenInspectorWithScenario('all', null, 1)}
+                title="Inspect Stage 1: Optical Diode Ingest"
+                style={{
+                  padding: '4px 9px',
+                  borderRadius: '6px',
+                  background: '#E0F2FE',
+                  color: '#0369A1',
+                  border: '1px solid #BAE6FD',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease',
+                }}
+              >
                 1. Optical Tap (Rx-Only Physical Diode)
               </span>
               <span style={{ color: '#94A3B8' }}>➔</span>
-              <span style={{
-                padding: '4px 9px',
-                borderRadius: '6px',
-                background: '#EEF2FF',
-                color: '#4338CA',
-                border: '1px solid #C7D2FE',
-                fontWeight: '700',
-              }}>
+              <span
+                onClick={() => handleOpenInspectorWithScenario('all', null, 2)}
+                title="Inspect Stage 2: 5-Tuple Assembler"
+                style={{
+                  padding: '4px 9px',
+                  borderRadius: '6px',
+                  background: '#EEF2FF',
+                  color: '#4338CA',
+                  border: '1px solid #C7D2FE',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease',
+                }}
+              >
                 2. 5-Tuple Assembler & Sliding Window
               </span>
               <span style={{ color: '#94A3B8' }}>➔</span>
-              <span style={{
-                padding: '4px 9px',
-                borderRadius: '6px',
-                background: '#F5F3FF',
-                color: '#6D28D9',
-                border: '1px solid #DDD6FE',
-                fontWeight: '700',
-              }}>
+              <span
+                onClick={() => handleOpenInspectorWithScenario('all', null, 3)}
+                title="Inspect Stage 3: Feature Extraction Math"
+                style={{
+                  padding: '4px 9px',
+                  borderRadius: '6px',
+                  background: '#F5F3FF',
+                  color: '#6D28D9',
+                  border: '1px solid #DDD6FE',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease',
+                }}
+              >
                 3. Feature Math (Entropy, FFT, Inter-Arrival)
               </span>
               <span style={{ color: '#94A3B8' }}>➔</span>
-              <span style={{
-                padding: '4px 9px',
-                borderRadius: '6px',
-                background: '#FDF2F8',
-                color: '#BE185D',
-                border: '1px solid #FBCFE8',
-                fontWeight: '700',
-              }}>
+              <span
+                onClick={() => handleOpenInspectorWithScenario('all', null, 4)}
+                title="Inspect Stage 4: Multi-Threat AI Classifiers"
+                style={{
+                  padding: '4px 9px',
+                  borderRadius: '6px',
+                  background: '#FDF2F8',
+                  color: '#BE185D',
+                  border: '1px solid #FBCFE8',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease',
+                }}
+              >
                 4. Multi-Threat AI Classifiers (RF, IF & Signatures)
               </span>
               <span style={{ color: '#94A3B8' }}>➔</span>
-              <span style={{
-                padding: '4px 9px',
-                borderRadius: '6px',
-                background: '#DCFCE7',
-                color: '#15803D',
-                border: '1px solid #BBF7D0',
-                fontWeight: '700',
-              }}>
+              <span
+                onClick={() => handleOpenInspectorWithScenario('all', null, 5)}
+                title="Inspect Stage 5: SOC Dispatch & Alert Store"
+                style={{
+                  padding: '4px 9px',
+                  borderRadius: '6px',
+                  background: '#DCFCE7',
+                  color: '#15803D',
+                  border: '1px solid #BBF7D0',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'transform 0.15s ease',
+                }}
+              >
                 5. SOC Dispatch & Alert Store
               </span>
             </div>
@@ -466,6 +498,7 @@ export default function App() {
         simulationResult={inspectorResult || lastSimulationResult}
         onRunSimulation={simulateAttack}
         onInspectAlert={(alert) => setSelectedAlert(alert)}
+        initialStage={inspectorStage}
       />
     </div>
   );
