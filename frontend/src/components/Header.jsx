@@ -1,7 +1,16 @@
 import React from 'react';
 import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Info } from 'lucide-react';
 
-export default function Header({ connected, throughput, totalAlerts, onOpenSimulate, onRefresh }) {
+export default function Header({
+  connected,
+  throughput,
+  totalAlerts,
+  onOpenSimulate,
+  onOpenInspector,
+  onRefresh,
+  isRefreshing = false,
+  isSimulating = false,
+}) {
   return (
     <header style={{
       display: 'flex',
@@ -32,7 +41,7 @@ export default function Header({ connected, throughput, totalAlerts, onOpenSimul
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h1 style={{ fontSize: '17px', fontWeight: '700', letterSpacing: '-0.02em', color: '#ffffff' }}>
-              Cyber Threat Detection SOC
+               Cyber Threat Detection SOC
             </h1>
             <div
               className="has-tooltip"
@@ -65,7 +74,7 @@ export default function Header({ connected, throughput, totalAlerts, onOpenSimul
       </div>
 
       {/* Action Controls & Telemetry */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Stream Throughput */}
         <div style={{
           display: 'flex',
@@ -97,6 +106,16 @@ export default function Header({ connected, throughput, totalAlerts, onOpenSimul
           background: connected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
           border: `1px solid ${connected ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
         }}>
+          <span
+            style={{
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: connected ? 'var(--accent-emerald)' : 'var(--sev-critical)',
+              boxShadow: connected ? '0 0 8px var(--accent-emerald)' : '0 0 8px var(--sev-critical)',
+            }}
+            className={connected ? 'pulse' : ''}
+          />
           {connected ? <Wifi size={14} color="var(--accent-emerald)" /> : <WifiOff size={14} color="var(--sev-critical)" />}
           <span style={{
             fontSize: '11px',
@@ -107,48 +126,106 @@ export default function Header({ connected, throughput, totalAlerts, onOpenSimul
           </span>
         </div>
 
-        {/* Refresh Button */}
-        <button
-          onClick={onRefresh}
-          title="Refresh dashboard stats"
-          style={{
-            background: 'rgba(30, 41, 59, 0.6)',
-            border: '1px solid var(--bg-card-border)',
-            color: 'var(--text-secondary)',
-            padding: '8px',
-            borderRadius: 'var(--radius-md)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.15s',
-          }}
-        >
-          <RefreshCw size={15} />
-        </button>
+        {/* Refresh Button with Live Spin Feedback */}
+        <div className="has-tooltip">
+          <button
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            style={{
+              background: isRefreshing ? 'rgba(99, 102, 241, 0.25)' : 'rgba(30, 41, 59, 0.6)',
+              border: `1px solid ${isRefreshing ? 'var(--accent-indigo)' : 'var(--bg-card-border)'}`,
+              color: isRefreshing ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+              padding: '8px',
+              borderRadius: 'var(--radius-md)',
+              cursor: isRefreshing ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s ease',
+              boxShadow: isRefreshing ? '0 0 12px rgba(99, 102, 241, 0.4)' : 'none',
+            }}
+          >
+            <RefreshCw
+              size={15}
+              style={{
+                animation: isRefreshing ? 'spin 0.6s linear infinite' : 'none',
+                transformOrigin: 'center center',
+              }}
+            />
+          </button>
+          <div className="tooltip">
+            {isRefreshing ? 'Refreshing live feed telemetry...' : 'Refresh live threat feed & statistics'}
+          </div>
+        </div>
+
+        {/* Pipeline Architecture / How it Works Button */}
+        <div className="has-tooltip">
+          <button
+            onClick={onOpenInspector}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(99, 102, 241, 0.15)',
+              border: '1px solid rgba(99, 102, 241, 0.35)',
+              color: '#c7d2fe',
+              fontWeight: '600',
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            <Activity size={14} color="var(--accent-cyan)" />
+            <span>Live Pipeline Inspector</span>
+            <span style={{
+              fontSize: '9px',
+              fontWeight: '700',
+              padding: '1px 5px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(6, 182, 212, 0.2)',
+              color: 'var(--accent-cyan)',
+              letterSpacing: '0.04em',
+            }}>
+              JURY VIEW
+            </span>
+          </button>
+          <div className="tooltip">
+            Step-by-step interactive walkthrough: Optical Diode Tap ➔ 5-Tuple Assembler ➔ Feature Math ➔ ML Engine ➔ Alert.
+          </div>
+        </div>
 
         {/* Simulate Demo Attack Trigger Button */}
         <div className="has-tooltip">
           <button
             onClick={onOpenSimulate}
+            disabled={isSimulating}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               padding: '8px 16px',
               borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+              background: isSimulating
+                ? 'rgba(79, 70, 229, 0.35)'
+                : 'linear-gradient(135deg, #4f46e5, #06b6d4)',
               color: '#ffffff',
-              border: 'none',
+              border: isSimulating ? '1px solid rgba(99, 102, 241, 0.5)' : 'none',
               fontWeight: '600',
               fontSize: '12px',
-              cursor: 'pointer',
-              boxShadow: '0 0 16px rgba(79, 70, 229, 0.35)',
+              cursor: isSimulating ? 'wait' : 'pointer',
+              boxShadow: isSimulating ? '0 0 20px rgba(99, 102, 241, 0.4)' : '0 0 16px rgba(79, 70, 229, 0.35)',
               transition: 'all 0.2s ease',
+              opacity: isSimulating ? 0.85 : 1,
             }}
           >
-            <Zap size={14} />
-            <span>Simulate Demo Attack</span>
+            {isSimulating ? (
+              <RefreshCw size={14} style={{ animation: 'spin 0.6s linear infinite' }} />
+            ) : (
+              <Zap size={14} />
+            )}
+            <span>{isSimulating ? 'Simulating Attack Ingest...' : 'Simulate Demo Attack'}</span>
             <span style={{
               fontSize: '9px',
               fontWeight: '700',
@@ -161,7 +238,7 @@ export default function Header({ connected, throughput, totalAlerts, onOpenSimul
             </span>
           </button>
           <div className="tooltip">
-            Replays safe pre-recorded cyber attack vectors to test live AI detection.
+            {isSimulating ? 'Simulated attack traffic active across optical tap...' : 'Replays safe cyber attack vectors to test live AI detection.'}
           </div>
         </div>
 

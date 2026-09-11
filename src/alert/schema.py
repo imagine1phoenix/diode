@@ -103,6 +103,14 @@ class Alert(BaseModel):
         ...,
         description="Semver string identifying the detector (R4.8)",
     )
+    mitre_tactic: str | None = Field(
+        default=None,
+        description="MITRE ATT&CK Tactic ID (e.g. TA0040)",
+    )
+    mitre_technique: str | None = Field(
+        default=None,
+        description="MITRE ATT&CK Technique ID (e.g. T1498)",
+    )
 
     @field_validator("flow_id")
     @classmethod

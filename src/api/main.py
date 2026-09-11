@@ -95,11 +95,16 @@ if dashboard_path.exists():
 @app.get("/")
 async def root():
     """Serve the dashboard (React built app if available, else static HTML)."""
+    no_cache_headers = {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
     if dist_path.exists() and (dist_path / "index.html").exists():
-        return FileResponse(str(dist_path / "index.html"))
+        return FileResponse(str(dist_path / "index.html"), headers=no_cache_headers)
     index_path = dashboard_path / "index.html"
     if index_path.exists():
-        return FileResponse(str(index_path))
+        return FileResponse(str(index_path), headers=no_cache_headers)
     return {"message": "SIH Cyber Threat Detection API", "docs": "/docs"}
 
 
@@ -198,13 +203,39 @@ async def simulate_traffic(
     pcap_path = generate_demo_pcap(scenario=threat_class)
     alerts = await _pipeline.process_pcap_async(pcap_path)
 
+    alert_dicts = [a.model_dump() if hasattr(a, "model_dump") else a for a in alerts]
+
     return {
         "status": "success",
         "threat_class": threat_class,
         "pcap_file": str(pcap_path),
         "alerts_generated": len(alerts),
+        "alerts": alert_dicts[:15],
         "throughput": _pipeline.throughput.report(),
     }
+
+
+@app.post("/api/triage")
+async def triage_endpoint(alert: dict[str, Any]) -> dict[str, Any]:
+    """
+    Air-Gapped Generative AI SOC Analyst (LLM Auto-Triage).
+    Evaluates normalized alert telemetry and returns plain-English diagnosis,
+    forensic evidence breakdown, and actionable manual mitigation commands.
+    """
+    from src.api.triage import triage_alert
+    return triage_alert(alert)
+
+
+@app.get("/api/geoip/threats")
+async def geoip_threats(limit: int = Query(200, ge=1, le=1000)) -> list[dict[str, Any]]:
+    """
+    Aggregate recent alerts by geographic attacker source coordinates.
+    Used by the Live Geo-IP World Threat Map.
+    """
+    from src.features.geoip import aggregate_threat_geo
+    assert _store is not None
+    recent_alerts = _store.get_recent(limit=limit)
+    return aggregate_threat_geo(recent_alerts)
 
 
 # ---------------------------------------------------------------------------

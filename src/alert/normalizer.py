@@ -14,6 +14,7 @@ import time
 from typing import Any
 
 import config
+from src.alert.mitre import get_mitre_mapping
 from src.alert.schema import Alert, Evidence, Severity, ThreatClass
 from src.detectors.base import RawDetection
 
@@ -258,6 +259,15 @@ def _build_alert(
         severity = Severity.LOW
 
     try:
+        mapping = get_mitre_mapping(threat_class.value)
+        mitre_tactic = mapping.tactic_id if mapping else None
+        mitre_technique = mapping.technique_id if mapping else None
+        if mapping:
+            supporting_stats["mitre_tactic"] = f"{mapping.tactic_id}: {mapping.tactic_name}"
+            supporting_stats["mitre_technique"] = f"{mapping.technique_id}: {mapping.technique_name}"
+            if mapping.subtechnique_id:
+                supporting_stats["mitre_subtechnique"] = mapping.subtechnique_id
+
         evidence = Evidence(
             features_triggered=features_triggered,
             supporting_stats=supporting_stats,
@@ -269,6 +279,8 @@ def _build_alert(
             severity=severity,
             evidence=evidence,
             detector_version=detector_version,
+            mitre_tactic=mitre_tactic,
+            mitre_technique=mitre_technique,
         )
     except Exception as e:
         logger.error("Failed to build alert for flow=%s threat=%s: %s", flow_id, threat_class, e)

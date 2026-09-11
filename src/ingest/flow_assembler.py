@@ -61,6 +61,10 @@ class FlowRecord:
     # TLS (Tier 2)
     tls_ja3_fingerprints: list[str] = field(default_factory=list)
 
+    # Bidirectional visibility (when return link is mirrored into diode tap)
+    reverse_bytes: int = 0
+    reverse_packets: int = 0
+
     @property
     def flow_id(self) -> str:
         """Format: src_ip:src_port-dst_ip:dst_port-proto (PRD §6, R4.3)."""
@@ -110,6 +114,15 @@ class FlowAssembler:
         # Exact cumulative volume and timing metrics
         flow.packet_count += 1
         flow.total_bytes += packet.length
+
+        # Bidirectional cross-accounting when full-duplex tap or SPAN port is monitored
+        rev_key = f"{packet.dst_ip}:{packet.dst_port}-{packet.src_ip}:{packet.src_port}-{packet.proto}"
+        rev_flow = self._active_flows.get(rev_key)
+        if rev_flow is not None:
+            rev_flow.reverse_bytes += packet.length
+            rev_flow.reverse_packets += 1
+            flow.reverse_bytes = rev_flow.total_bytes
+            flow.reverse_packets = rev_flow.packet_count
 
         if packet.timestamp < flow.start_time or flow.start_time == 0.0:
             flow.start_time = packet.timestamp

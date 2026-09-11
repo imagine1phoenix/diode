@@ -106,6 +106,16 @@ body {
   animation: pulse-glow 2s infinite ease-in-out;
 }
 
+/* Spinner rotation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Tooltip container */
 .has-tooltip {
   position: relative;

@@ -44,7 +44,7 @@ flowchart TD
         D3["Botnet C2 Beaconing Detector ★\n(FFT Dominant Frequency, Low Jitter CoV)"]
         D4["DGA & DNS Tunneling Detector ★\n(English Bigram Log-Likelihood, Entropy)"]
         D5["Encrypted Malware Classifier ◐\n(JA3/JA4 Handshake Metadata Blocklist)"]
-        D6["Data Exfiltration Detector ◐\n(Asymmetric Egress Volume & Byte Ratios)"]
+        D6["Data Exfiltration Detector ★\n(Isolation Forest Anomaly Model + Egress Density)"]
     end
 
     subgraph AlertPipeline["Alert Normalization & Persistence"]
@@ -69,8 +69,8 @@ flowchart TD
     D1 & D2 & D3 & D4 & D5 & D6 --> NORM
 ```
 
-*★ **Tier 1:** Fully implemented production detectors.*  
-*◐ **Tier 2:** Implemented heuristic / stubbed classifiers.*
+*★ **Production Detectors:** Fully implemented with trained machine learning (Random Forest & Isolation Forest) + statistical signal processing.*  
+*◐ **Tier 2 Classifier:** JA3/JA4 handshake fingerprinting.*
 
 ---
 
@@ -98,9 +98,11 @@ cd /path/to/SIH
 # 1. Install Python dependencies
 pip install -r requirements.txt
 
-# 2. Install & build frontend assets
-npm install
+# 2. Build production React dashboard
 npm run build
+
+# 3. Launch the unified server
+python3 main.py --serve
 ```
 
 ### Running the System
@@ -213,14 +215,17 @@ When evaluators inquire about high-throughput monitoring:
 > 2. **Port/Host Scans:** Extreme fan-out cardinality (single source IP hitting dozens of distinct destination ports or hosts within seconds).
 > 3. **C2 Beaconing:** Regular inter-arrival times detectable via Fast Fourier Transform (FFT) dominant spectral frequency and autocorrelation ($>0.70$) across host pairs.
 > 4. **DGA / DNS Tunnelling:** High character Shannon entropy ($>3.8$) and anomalous English bigram transitions classified by our trained Random Forest model.
-> 5. **Exfiltration:** Asymmetric outbound flow byte counts and sustained transfer durations without requiring return ACKs."*
+> 5. **Exfiltration:** High egress payload density ($>0.75$), sustained transfer durations, and outlier detection via our trained Isolation Forest."*
 
-### Q2: "How do you mathematically prove your code cannot violate data diode isolation?"
-> **Answer:** *"Rather than relying on human review or basic grep searches, our test suite includes an automated Abstract Syntax Tree (AST) compiler test ([`tests/test_ingest_isolation.py`](file:///Users/pritthacker/SIH/tests/test_ingest_isolation.py)). It structurally inspects the AST of all ingestion modules, mathematically verifying that no socket creation (`socket.socket`), network clients (`urllib`, `requests`, `httpx`), or file write calls (`open(..., 'w')`) exist in the ingestion layer."*
+### Q2: "Does 'unidirectional' mean you can't see return traffic, or that you can't send anything back?"
+> **Answer:** *"In data diode architecture, 'unidirectional' strictly means our monitoring system **cannot transmit anything back** onto the monitored link (enforced by a physical Rx-only optical fiber with no laser transmitter). However, tap placement dictates visibility:
+> - **Full-Duplex Tap / SPAN Mirror:** Both Tx and Rx fibers of the monitored link can be combined into the diode receiver's photodiode, allowing the system to observe return packets and measure exact bidirectional ratios (`outbound_inbound_byte_ratio`).
+> - **Simplex Tap:** If only the outbound link is physically tapped, return packets are completely absent. Our detector honestly handles both cases: computing the real byte ratio when return traffic is visible, and falling back to `mean_payload_bytes_proxy`, MTU packet sizing, and `egress_payload_density` when return traffic is physically absent."*
 
 ### Q3: "What makes this 'AI-based' rather than just traditional Snort rules?"
-> **Answer:** *"Traditional signature rules fail against zero-day DGA domains and variable-jitter C2 beacons. Our system incorporates:
+> **Answer:** *"Traditional signature rules fail against zero-day DGA domains and variable-jitter C2 beacons. Our system incorporates two distinct machine learning models alongside signal processing:
 > - **Supervised Machine Learning:** A trained `RandomForestClassifier` (`models/dga_rf_model.joblib`) that evaluates lexical domain features (vowel ratios, consonant sequences, bigram log-likelihoods, length, and Shannon entropy).
+> - **Unsupervised Machine Learning:** An `IsolationForest` (`models/isolation_forest_exfil.joblib`) trained on benign baseline enterprise flows to detect statistical outliers in duration, payload density, throughput, and byte asymmetry for data exfiltration.
 > - **Signal Processing:** Fast Fourier Transform (FFT) frequency spectrum analysis to detect hidden periodic beacons embedded within noise.
 > - **Information-Theoretic Entropy:** Shannon entropy calculations over source IP distributions and query strings."*
 

@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { X, Zap, Radio, Globe, ShieldAlert, Cpu, CheckCircle2, Loader2, ArrowUpRight, Play } from 'lucide-react';
+import { X, Zap, Radio, Globe, ShieldAlert, Cpu, CheckCircle2, Loader2, ArrowUpRight, Play, Sparkles } from 'lucide-react';
 import { THREAT_CONFIG } from './ThreatDonutChart';
 
-export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulating }) {
+export default function SimulateModal({
+  isOpen,
+  onClose,
+  onSimulate,
+  isSimulating,
+  onOpenInspector,
+}) {
   const [selectedThreat, setSelectedThreat] = useState('all');
   const [result, setResult] = useState(null);
 
@@ -59,14 +65,25 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
     },
   ];
 
-  const handleRun = async () => {
+  // Run with Interactive Pipeline Walkthrough (Jury Mode)
+  const handleRunWithInspector = async () => {
+    setResult(null);
+    const simData = await onSimulate(selectedThreat);
+    onClose();
+    if (onOpenInspector) {
+      onOpenInspector(selectedThreat, simData);
+    }
+  };
+
+  // Run instant background ingestion
+  const handleRunInstant = async () => {
     setResult(null);
     await onSimulate(selectedThreat);
     setResult('Simulation traffic ingested and classified by AI pipeline!');
     setTimeout(() => {
       onClose();
       setResult(null);
-    }, 1500);
+    }, 1200);
   };
 
   return (
@@ -201,6 +218,24 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
           })}
         </div>
 
+        {/* Jury Guidance Callout */}
+        <div style={{
+          margin: '14px 0 16px',
+          padding: '10px 14px',
+          borderRadius: 'var(--radius-sm)',
+          background: 'rgba(99, 102, 241, 0.1)',
+          border: '1px solid rgba(99, 102, 241, 0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+        }}>
+          <Sparkles size={16} color="var(--accent-cyan)" />
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+            <strong style={{ color: '#ffffff' }}>Recommendation for Judges:</strong> Use{' '}
+            <span style={{ color: 'var(--accent-cyan)', fontWeight: '600' }}>"Launch Live Pipeline Walkthrough"</span> to observe how the one-way optical diode ingest, 5-tuple flow assembly, entropy/FFT math, and ML models classify threats in sequence.
+          </div>
+        </div>
+
         {/* Action Status */}
         {result && (
           <div style={{
@@ -218,7 +253,7 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
         )}
 
         {/* Action Footer */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
           <button
             onClick={onClose}
             style={{
@@ -233,28 +268,66 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
           >
             Cancel
           </button>
-          <button
-            onClick={handleRun}
-            disabled={isSimulating}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 18px',
-              borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
-              border: 'none',
-              color: '#ffffff',
-              fontWeight: '600',
-              cursor: isSimulating ? 'not-allowed' : 'pointer',
-              fontSize: '12px',
-              opacity: isSimulating ? 0.7 : 1,
-              boxShadow: '0 0 16px rgba(79, 70, 229, 0.35)',
-            }}
-          >
-            {isSimulating ? <Loader2 size={15} className="pulse" /> : <Play size={14} />}
-            {isSimulating ? 'Simulating Traffic Ingest...' : 'Run Threat Simulation'}
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Instant Background Ingest */}
+            <button
+              onClick={handleRunInstant}
+              disabled={isSimulating}
+              title="Runs immediately in background without opening the visual pipeline modal"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(15, 23, 42, 0.8)',
+                border: '1px solid var(--bg-card-border)',
+                color: 'var(--text-primary)',
+                fontWeight: '500',
+                cursor: isSimulating ? 'not-allowed' : 'pointer',
+                fontSize: '12px',
+                opacity: isSimulating ? 0.6 : 1,
+              }}
+            >
+              <Zap size={13} color="var(--accent-cyan)" />
+              <span>Instant Ingest</span>
+            </button>
+
+            {/* Launch Pipeline Walkthrough (Jury Mode) */}
+            <button
+              onClick={handleRunWithInspector}
+              disabled={isSimulating}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: 'var(--radius-md)',
+                background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
+                border: 'none',
+                color: '#ffffff',
+                fontWeight: '700',
+                cursor: isSimulating ? 'not-allowed' : 'pointer',
+                fontSize: '12px',
+                opacity: isSimulating ? 0.7 : 1,
+                boxShadow: '0 0 20px rgba(79, 70, 229, 0.45)',
+              }}
+            >
+              {isSimulating ? <Loader2 size={15} className="pulse" /> : <Play size={14} />}
+              <span>{isSimulating ? 'Ingesting Simulated Stream...' : 'Launch Live Pipeline Walkthrough'}</span>
+              <span style={{
+                fontSize: '9px',
+                fontWeight: '700',
+                padding: '1px 5px',
+                borderRadius: 'var(--radius-full)',
+                background: 'rgba(255, 255, 255, 0.25)',
+                letterSpacing: '0.04em',
+              }}>
+                JURY MODE
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

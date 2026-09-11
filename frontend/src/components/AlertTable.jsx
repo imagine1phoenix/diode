@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   Search, Filter, Download, ExternalLink, ChevronDown, ChevronRight,
   Shield, Radio, Globe, ShieldAlert, Cpu, ArrowUpRight, CheckCircle2,
-  AlertTriangle, Sparkles, Clock, Eye
+  AlertTriangle, Sparkles, Clock, Eye, Bot, Lock
 } from 'lucide-react';
 import { THREAT_CONFIG } from './ThreatDonutChart';
 
@@ -44,6 +44,15 @@ const THREAT_ICONS = {
   dga_dns: Globe,
   encrypted_malware: Shield,
   exfiltration: ArrowUpRight,
+};
+
+const MITRE_TABLE = {
+  ddos: { technique: 'T1498', tactic: 'TA0040', name: 'Network Denial of Service' },
+  recon_scan: { technique: 'T1595', tactic: 'TA0043', name: 'Active Scanning' },
+  c2_beaconing: { technique: 'T1071', tactic: 'TA0011', name: 'App Layer Protocol' },
+  dga_dns: { technique: 'T1568', tactic: 'TA0011', name: 'Dynamic Resolution' },
+  encrypted_malware: { technique: 'T1573', tactic: 'TA0005', name: 'Encrypted Channel' },
+  exfiltration: { technique: 'T1048', tactic: 'TA0010', name: 'Exfiltration Over Alt Protocol' },
 };
 
 // Common port mapping helper
@@ -138,11 +147,9 @@ function generatePlainEnglishWhy(alert) {
     }
     case 'c2_beaconing': {
       const conns = stats.host_pair_connections;
-      const jitter = stats.jitter_cov;
       return `Periodic heartbeat connections (${conns || 'multi-session'} pulses) identified with strict timing regularity (FFT spectral peak confirmed).`;
     }
     case 'exfiltration': {
-      const density = stats.egress_payload_density || stats.outbound_bytes;
       return 'Large sustained outbound payload transfer detected exceeding the physical one-way egress policy.';
     }
     case 'encrypted_malware': {
@@ -155,7 +162,7 @@ function generatePlainEnglishWhy(alert) {
   }
 }
 
-export default function AlertTable({ alerts = [], onSelectAlert }) {
+export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [severityFilter, setSeverityFilter] = useState('all');
   const [threatFilter, setThreatFilter] = useState('all');
@@ -170,7 +177,8 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
         const flow = (alert.flow_id || '').toLowerCase();
         const threat = (alert.threat_class || '').toLowerCase();
         const id = (alert.alert_id || '').toLowerCase();
-        return flow.includes(term) || threat.includes(term) || id.includes(term);
+        const mitre = (alert.mitre_technique || '').toLowerCase();
+        return flow.includes(term) || threat.includes(term) || id.includes(term) || mitre.includes(term);
       }
       return true;
     });
@@ -179,11 +187,12 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
   // Export CSV
   const exportCSV = () => {
     if (filteredAlerts.length === 0) return;
-    const headers = ['alert_id', 'timestamp', 'threat_class', 'severity', 'confidence', 'flow_id'];
+    const headers = ['alert_id', 'timestamp', 'threat_class', 'mitre_technique', 'severity', 'confidence', 'flow_id'];
     const rows = filteredAlerts.map((a) => [
       a.alert_id,
       a.timestamp,
       a.threat_class,
+      a.mitre_technique || (MITRE_TABLE[a.threat_class]?.technique || 'T1498'),
       a.severity,
       a.confidence,
       `"${a.flow_id}"`,
@@ -225,7 +234,7 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
             </span>
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-            Real-time normalized security events with one-click forensic evidence
+            Real-time normalized security events with MITRE ATT&CK mapping & AI auto-triage
           </p>
         </div>
 
@@ -244,7 +253,7 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
             <Search size={14} color="var(--text-muted)" />
             <input
               type="text"
-              placeholder="Search IP, domain, or ID..."
+              placeholder="Search IP, MITRE, domain..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
@@ -274,12 +283,12 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
             }}
           >
             <option value="all">All Threat Types</option>
-            <option value="ddos">DDoS Flooding</option>
-            <option value="recon_scan">Recon & Port Scan</option>
-            <option value="c2_beaconing">Botnet C2 Beacon</option>
-            <option value="dga_dns">DGA / DNS Tunnel</option>
-            <option value="encrypted_malware">Encrypted Malware</option>
-            <option value="exfiltration">Data Exfiltration</option>
+            <option value="ddos">DDoS Flooding (T1498)</option>
+            <option value="recon_scan">Recon & Scan (T1595)</option>
+            <option value="c2_beaconing">Botnet C2 (T1071)</option>
+            <option value="dga_dns">DGA / DNS Tunnel (T1568)</option>
+            <option value="encrypted_malware">Encrypted Malware (T1573)</option>
+            <option value="exfiltration">Data Exfiltration (T1048)</option>
           </select>
 
           {/* Severity Buttons */}
@@ -332,7 +341,7 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
 
       {/* Feed Table View */}
       <div style={{ overflowX: 'auto', maxHeight: '580px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+        <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
           <thead>
             <tr style={{
               borderBottom: '1px solid var(--bg-card-border)',
@@ -341,13 +350,13 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
             }}>
-              <th style={{ padding: '10px 12px', width: '90px' }}>Time</th>
-              <th style={{ padding: '10px 12px' }}>Threat Type</th>
-              <th style={{ padding: '10px 12px', width: '90px' }}>Severity</th>
-              <th style={{ padding: '10px 12px', width: '140px' }}>Confidence</th>
-              <th style={{ padding: '10px 12px' }}>Connection Path</th>
-              <th style={{ padding: '10px 12px' }}>Key Evidence</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right', width: '90px' }}>Actions</th>
+              <th style={{ padding: '8px 8px', width: '78px' }}>Time</th>
+              <th style={{ padding: '8px 8px', width: '150px' }}>Threat & MITRE</th>
+              <th style={{ padding: '8px 6px', width: '72px' }}>Severity</th>
+              <th style={{ padding: '8px 6px', width: '95px' }}>Confidence</th>
+              <th style={{ padding: '8px 8px', width: '160px' }}>Connection Path</th>
+              <th style={{ padding: '8px 8px' }}>Key Evidence</th>
+              <th style={{ padding: '8px 8px', textAlign: 'right', width: '135px', whiteSpace: 'nowrap' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -362,12 +371,12 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                 const sevConfig = SEVERITY_CONFIG[alert.severity] || SEVERITY_CONFIG.low;
                 const threatConfig = THREAT_CONFIG[alert.threat_class] || { label: alert.threat_class, color: '#94a3b8' };
                 const ThreatIcon = THREAT_ICONS[alert.threat_class] || AlertTriangle;
+                const mitre = MITRE_TABLE[alert.threat_class] || { technique: alert.mitre_technique || 'T1498', tactic: 'TA0040', name: 'Network Threat' };
 
-                // Smart timestamp formatting: prevent repeated wall of identical times
+                // Smart timestamp formatting
                 const alertDate = alert.timestamp ? new Date(alert.timestamp) : new Date();
                 const timeStr = alertDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-                // Detect burst with previous alert in list
                 const prevAlert = index > 0 ? filteredAlerts[index - 1] : null;
                 const isSameSecond = prevAlert && prevAlert.timestamp &&
                   new Date(prevAlert.timestamp).getSeconds() === alertDate.getSeconds() &&
@@ -375,7 +384,6 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
 
                 const confPercent = Math.round((alert.confidence || 0) * 100);
 
-                // Calibrated qualitative confidence tier
                 let confLevelLabel = 'Signal';
                 let confLevelColor = '#06b6d4';
                 let filledBars = 1;
@@ -418,8 +426,8 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                         if (!isExpanded) e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
-                      {/* Time Column with burst offset indicator */}
-                      <td style={{ padding: '10px 12px', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                      {/* Time Column with burst offset */}
+                      <td style={{ padding: '8px 8px', fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <span style={{ fontFamily: 'var(--font-mono)' }}>{timeStr}</span>
                           {isSameSecond && (
@@ -442,12 +450,12 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                         </div>
                       </td>
 
-                      {/* Threat Type with Semantic Icon */}
-                      <td style={{ padding: '10px 12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {/* Threat Type & MITRE Badge */}
+                      <td style={{ padding: '8px 8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                           <div style={{
-                            width: '24px',
-                            height: '24px',
+                            width: '22px',
+                            height: '22px',
                             borderRadius: 'var(--radius-sm)',
                             background: `rgba(255, 255, 255, 0.06)`,
                             border: `1px solid rgba(255, 255, 255, 0.12)`,
@@ -456,20 +464,44 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                             justifyContent: 'center',
                             flexShrink: 0,
                           }}>
-                            <ThreatIcon size={13} color={threatConfig.color} />
+                            <ThreatIcon size={12} color={threatConfig.color} />
                           </div>
-                          <span style={{ fontWeight: '600', color: '#f8fafc', fontSize: '12px' }}>
-                            {threatConfig.label}
-                          </span>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <span style={{ fontWeight: '600', color: '#f8fafc', fontSize: '12px', whiteSpace: 'nowrap' }}>
+                                {threatConfig.label}
+                              </span>
+                              <span
+                                className="has-tooltip"
+                                style={{
+                                  fontSize: '9px',
+                                  fontFamily: 'var(--font-mono)',
+                                  fontWeight: '700',
+                                  padding: '1px 4px',
+                                  borderRadius: '3px',
+                                  background: 'rgba(99, 102, 241, 0.15)',
+                                  color: 'var(--accent-indigo)',
+                                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                                  cursor: 'help',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {alert.mitre_technique || mitre.technique}
+                                <div className="tooltip">
+                                  MITRE ATT&CK: {mitre.name} ({alert.mitre_tactic || mitre.tactic})
+                                </div>
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </td>
 
                       {/* Severity Badge */}
-                      <td style={{ padding: '10px 12px' }}>
+                      <td style={{ padding: '8px 6px' }}>
                         <span style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          padding: '2px 8px',
+                          padding: '2px 6px',
                           borderRadius: 'var(--radius-sm)',
                           fontSize: '10px',
                           fontWeight: '700',
@@ -479,23 +511,23 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                           background: sevConfig.bg,
                           border: `1px solid ${sevConfig.border}`,
                           boxShadow: sevConfig.glow,
+                          whiteSpace: 'nowrap',
                         }}>
                           {alert.severity}
                         </span>
                       </td>
 
                       {/* Calibrated Confidence Meter */}
-                      <td style={{ padding: '10px 12px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            {/* 4 Segmented Micro-Bars */}
+                      <td style={{ padding: '8px 6px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <div style={{ display: 'flex', gap: '2px' }}>
                               {[1, 2, 3, 4].map((barIdx) => (
                                 <div
                                   key={barIdx}
                                   style={{
-                                    width: '8px',
-                                    height: '8px',
+                                    width: '7px',
+                                    height: '7px',
                                     borderRadius: '2px',
                                     background: barIdx <= filledBars ? confLevelColor : 'rgba(255, 255, 255, 0.1)',
                                   }}
@@ -511,25 +543,22 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                               {confPercent}%
                             </span>
                           </div>
-                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: 1 }}>
+                          <span style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: 1, whiteSpace: 'nowrap' }}>
                             {confLevelLabel}
                           </span>
                         </div>
                       </td>
 
-                      {/* Connection Path (Plain-Language From -> To) */}
-                      <td style={{ padding: '10px 12px' }}>
-                        <div
-                          className="has-tooltip"
-                          style={{ cursor: 'help' }}
-                        >
-                          <div style={{ fontSize: '12px', fontWeight: '500', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {/* Connection Path */}
+                      <td style={{ padding: '8px 8px' }}>
+                        <div className="has-tooltip" style={{ cursor: 'help' }}>
+                          <div style={{ fontSize: '11.5px', fontWeight: '500', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
                             <span>{flow.src}</span>
                             <span style={{ color: 'var(--text-muted)' }}>→</span>
                             <span style={{ color: flow.isAggregate ? 'var(--accent-cyan)' : '#ffffff' }}>{flow.dst}</span>
                           </div>
                           {flow.service && (
-                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', marginTop: '1px' }}>
                               {flow.service}
                             </div>
                           )}
@@ -539,8 +568,8 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                         </div>
                       </td>
 
-                      {/* Quick Evidence Preview Snippet */}
-                      <td style={{ padding: '10px 12px', maxWidth: '220px' }}>
+                      {/* Key Evidence */}
+                      <td style={{ padding: '8px 8px', maxWidth: '190px' }}>
                         <div style={{
                           fontSize: '11px',
                           color: 'var(--text-secondary)',
@@ -552,24 +581,34 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                         </div>
                       </td>
 
-                      {/* Action / Inspect */}
-                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      {/* Actions: AI Triage + Inspect */}
+                      <td style={{ padding: '8px 8px', textAlign: 'right', whiteSpace: 'nowrap', width: '135px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', justifyContent: 'flex-end' }}>
                           <button
-                            onClick={(e) => toggleExpand(alert.alert_id, e)}
-                            title="Quick summary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onOpenTriage) onOpenTriage(alert);
+                            }}
+                            title="Run Air-Gapped GenAI SOC Analyst"
                             style={{
-                              background: 'transparent',
-                              border: 'none',
-                              color: isExpanded ? 'var(--accent-indigo)' : 'var(--text-muted)',
+                              background: 'rgba(168, 85, 247, 0.15)',
+                              border: '1px solid rgba(168, 85, 247, 0.35)',
+                              color: '#d8b4fe',
+                              padding: '3px 7px',
+                              borderRadius: 'var(--radius-sm)',
+                              fontSize: '10.5px',
+                              fontWeight: '600',
                               cursor: 'pointer',
-                              padding: '2px',
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
+                              gap: '3px',
+                              whiteSpace: 'nowrap',
                             }}
                           >
-                            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                            <Bot size={11} color="#c084fc" />
+                            <span>AI Triage</span>
                           </button>
+
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -580,14 +619,15 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                               background: 'rgba(99, 102, 241, 0.12)',
                               border: '1px solid rgba(99, 102, 241, 0.25)',
                               color: 'var(--accent-indigo)',
-                              padding: '3px 8px',
+                              padding: '3px 6px',
                               borderRadius: 'var(--radius-sm)',
-                              fontSize: '11px',
+                              fontSize: '10.5px',
                               fontWeight: '600',
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '3px',
+                              gap: '2px',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             <span>Inspect</span>
@@ -597,7 +637,7 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                       </td>
                     </tr>
 
-                    {/* Expandable Plain-English Forensic Drawer */}
+                    {/* Expandable Forensic Drawer */}
                     {isExpanded && (
                       <tr style={{
                         borderBottom: '1px solid rgba(148, 163, 184, 0.12)',
@@ -630,7 +670,7 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                               {plainWhy}
                             </p>
 
-                            {/* Triggered Features & Stats Summary */}
+                            {/* Actions & Triggered Features */}
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', paddingTop: '6px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Triggered Signals:</span>
@@ -651,23 +691,45 @@ export default function AlertTable({ alerts = [], onSelectAlert }) {
                                 ))}
                               </div>
 
-                              <button
-                                onClick={() => onSelectAlert(alert)}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  color: 'var(--accent-cyan)',
-                                  fontSize: '11px',
-                                  fontWeight: '600',
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                }}
-                              >
-                                <span>Open Full Forensic Telemetry & Raw Payload</span>
-                                <ExternalLink size={11} />
-                              </button>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <button
+                                  onClick={() => onOpenTriage && onOpenTriage(alert)}
+                                  style={{
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.25))',
+                                    border: '1px solid rgba(168, 85, 247, 0.4)',
+                                    color: '#f8fafc',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    padding: '4px 10px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '5px',
+                                  }}
+                                >
+                                  <Bot size={12} color="#c084fc" />
+                                  <span>Air-Gapped SLM Triage Playbook</span>
+                                </button>
+
+                                <button
+                                  onClick={() => onSelectAlert(alert)}
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'var(--accent-cyan)',
+                                    fontSize: '11px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                  }}
+                                >
+                                  <span>Raw Telemetry JSON</span>
+                                  <ExternalLink size={11} />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </td>

@@ -81,8 +81,9 @@ class FlowFeatures:
     timing_sequence: list[float] = field(default_factory=list)
 
     # --- Exfiltration features (Tier 2, PRD §7 row 6) ---
-    outbound_inbound_byte_ratio: float = 0.0  # Backward-compatible proxy: average payload bytes per packet
-    egress_payload_density: float = 0.0       # Ratio of payload bytes to total wire bytes [0.0, 1.0]
+    outbound_inbound_byte_ratio: float = 0.0   # Measured outbound:inbound byte ratio (or proxy if simplex)
+    mean_payload_bytes_proxy: float = 0.0      # Honest density proxy: average payload bytes per packet
+    egress_payload_density: float = 0.0        # Ratio of payload bytes to total wire bytes [0.0, 1.0]
     mean_payload_bytes_per_packet: float = 0.0 # Average payload size per packet
     flow_duration: float = 0.0
 
@@ -116,6 +117,22 @@ class WindowFeatures:
     host_pair_connection_times: dict[tuple[str, str], list[float]] = field(default_factory=dict)
 
 
+def packet_size_uniformity(packet_sizes: list[int]) -> float:
+    """
+    Computes packet size uniformity in range [0.0, 1.0].
+    Uniform packet sizes (e.g. constant 64-byte SYN flood) return near 1.0.
+    High variance packet sizes return near 0.0.
+    """
+    if not packet_sizes or len(packet_sizes) <= 1:
+        return 0.0
+    mean_size = float(np.mean(packet_sizes))
+    if mean_size <= 0:
+        return 0.0
+    std_size = float(np.std(packet_sizes))
+    cv = std_size / mean_size
+    return float(max(0.0, min(1.0, 1.0 - cv)))
+
+
 def extract_flow_features(flow: FlowRecord) -> FlowFeatures:
     """
     Extract per-flow features from a single FlowRecord.
@@ -138,19 +155,10 @@ def extract_flow_features(flow: FlowRecord) -> FlowFeatures:
     # --- DDoS per-flow features ---
     if flow.ack_count > 0:
         features.syn_ack_ratio = flow.syn_count / flow.ack_count
-    elif flow.syn_count > 0:
-        features.syn_ack_ratio = float(flow.syn_count)  # All SYN, no ACK
+    else:
+        features.syn_ack_ratio = float(flow.syn_count) if flow.syn_count > 0 else 0.0
 
-    if flow.packet_sizes:
-        sizes = np.array(flow.packet_sizes, dtype=float)
-        if np.mean(sizes) > 0:
-            # Uniformity = 1 - (std/mean). High uniformity → uniform packet sizes
-            features.packet_size_uniformity = 1.0 - min(
-                float(np.std(sizes) / np.mean(sizes)), 1.0
-            )
-        else:
-            features.packet_size_uniformity = 1.0
-
+    features.packet_size_uniformity = packet_size_uniformity(flow.packet_sizes)
     features.packet_count = flow.packet_count
     features.total_bytes = flow.total_bytes
 
@@ -158,13 +166,13 @@ def extract_flow_features(flow: FlowRecord) -> FlowFeatures:
     features.bytes_per_flow = float(flow.total_bytes)
 
     # --- C2 Beaconing per-flow features ---
+    features.inter_arrival_time_variance = inter_arrival_variance(flow.timestamps)
+    features.inter_arrival_cv = coefficient_of_variation(flow.timestamps)
+    features.periodicity_score_value = periodicity_score(flow.timestamps)
     if flow.timestamps:
-        features.inter_arrival_time_variance = inter_arrival_variance(flow.timestamps)
-        features.inter_arrival_cv = coefficient_of_variation(flow.timestamps)
-        features.periodicity_score_value = periodicity_score(flow.timestamps)
         features.timing_sequence = flow.timestamps
 
-    # --- DGA / DNS per-flow features ---
+    # --- DGA / DNS Tunnelling (PRD §7 row 4) ---
     if flow.dns_queries:
         features.has_dns = True
         # Use the first (or most common) query for entropy analysis
@@ -186,14 +194,24 @@ def extract_flow_features(flow: FlowRecord) -> FlowFeatures:
     features.packet_size_sequence = flow.packet_sizes
 
     # --- Exfiltration (Tier 2, PRD §7 row 6) ---
-    # Data Diode Physical Constraint: On an optical unidirectional tap (rules.md R1),
-    # return/inbound traffic physically cannot traverse the diode. Exfiltration is
-    # determined via egress payload density, MTU saturation, and sustained duration.
+    # Optical Tap Visibility: On a full-duplex tap or SPAN port, return traffic is observed
+    # and allows computing the true outbound:inbound byte ratio. If the tap is strictly
+    # simplex (monitoring only the transmit fiber), return packets are physically absent,
+    # and exfiltration is detected via payload saturation, MTU sizing, and ACK volume proxy.
     if flow.total_bytes > 0 and flow.payload_sizes:
         total_payload = sum(s for s in flow.payload_sizes if s > 0)
         features.egress_payload_density = total_payload / flow.total_bytes
         features.mean_payload_bytes_per_packet = total_payload / max(flow.packet_count, 1)
-        features.outbound_inbound_byte_ratio = features.mean_payload_bytes_per_packet
+        features.mean_payload_bytes_proxy = features.mean_payload_bytes_per_packet
+
+    if flow.reverse_bytes > 0:
+        features.outbound_inbound_byte_ratio = round(flow.total_bytes / flow.reverse_bytes, 2)
+    elif flow.total_bytes > 0 and flow.ack_count > 0:
+        # Simplex tap proxy: ratio of transmitted payload to inferred ACK signaling volume
+        features.outbound_inbound_byte_ratio = round(flow.total_bytes / max(flow.ack_count * 54.0, 1.0), 2)
+    elif flow.total_bytes > 0:
+        features.outbound_inbound_byte_ratio = 999.0
+
     features.flow_duration = flow.duration
 
 

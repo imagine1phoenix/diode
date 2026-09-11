@@ -11,16 +11,18 @@ export function useAlertStream() {
   const [timeline, setTimeline] = useState([]);
   const [connected, setConnected] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
 
-  // Fetch initial data
+  // Fetch initial data with cache-busting
   const fetchStatsAndAlerts = useCallback(async () => {
     try {
+      const timestamp = Date.now();
       const [statsRes, alertsRes, timelineRes] = await Promise.all([
-        fetch('/api/stats'),
-        fetch('/api/alerts?limit=100'),
-        fetch('/api/timeline?minutes=30'),
+        fetch(`/api/stats?_t=${timestamp}`),
+        fetch(`/api/alerts?limit=100&_t=${timestamp}`),
+        fetch(`/api/timeline?minutes=30&_t=${timestamp}`),
       ]);
 
       if (statsRes.ok) {
@@ -46,6 +48,21 @@ export function useAlertStream() {
       console.warn('Failed to fetch initial stats:', err);
     }
   }, []);
+
+  // Manual refresh with visual spinning indicator (minimum 600ms duration)
+  const manualRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    const startTime = Date.now();
+    try {
+      await fetchStatsAndAlerts();
+    } finally {
+      const elapsed = Date.now() - startTime;
+      const remainingDelay = Math.max(0, 600 - elapsed);
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, remainingDelay);
+    }
+  }, [fetchStatsAndAlerts]);
 
   // Connect WebSocket
   useEffect(() => {
@@ -121,6 +138,8 @@ export function useAlertStream() {
     };
   }, [fetchStatsAndAlerts]);
 
+  const [lastSimulationResult, setLastSimulationResult] = useState(null);
+
   // Simulate Attack Trigger
   const simulateAttack = async (threatClass = 'all') => {
     setIsSimulating(true);
@@ -129,13 +148,17 @@ export function useAlertStream() {
         method: 'POST',
       });
       if (res.ok) {
+        const data = await res.json();
+        setLastSimulationResult(data);
         await fetchStatsAndAlerts();
+        return data;
       }
     } catch (err) {
       console.error('Simulation error:', err);
     } finally {
       setIsSimulating(false);
     }
+    return null;
   };
 
   return {
@@ -144,7 +167,10 @@ export function useAlertStream() {
     timeline,
     connected,
     isSimulating,
+    isRefreshing,
     simulateAttack,
-    refresh: fetchStatsAndAlerts,
+    lastSimulationResult,
+    refresh: manualRefresh,
   };
 }
+
