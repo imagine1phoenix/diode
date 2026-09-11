@@ -461,7 +461,7 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
                 const plainWhy = generatePlainEnglishWhy(alert);
 
                 return (
-                  <React.Fragment key={alert.alert_id}>
+                  <React.Fragment key={alert.alert_id || `${alert.flow_id}-${alert.threat_class}-${alert.timestamp}-${index}`}>
                     <tr
                       onClick={(e) => toggleExpand(alert.alert_id, e)}
                       style={{

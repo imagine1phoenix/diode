@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Zap, Radio, Globe, ShieldAlert, Cpu, CheckCircle2, Loader2, ArrowUpRight, Play, Sparkles } from 'lucide-react';
+import { X, Zap, Radio, Globe, ShieldAlert, Cpu, CheckCircle2, Loader2, ArrowUpRight, Play, Sparkles, Shield } from 'lucide-react';
 import { THREAT_CONFIG } from './ThreatDonutChart';
 
 export default function SimulateModal({
@@ -18,7 +18,7 @@ export default function SimulateModal({
     {
       id: 'all',
       name: 'Combined Threat Scenario Suite',
-      description: 'Replays benign baseline traffic mixed with SYN flood, port sweep, C2 beacon, DGA DNS, and exfiltration.',
+      description: 'Replays benign baseline traffic mixed with SYN flood, port sweep, C2 beacon, DGA DNS, encrypted malware, and exfiltration.',
       icon: Zap,
       color: '#2563EB',
       badge: 'Full Demo Suite',
@@ -54,6 +54,14 @@ export default function SimulateModal({
       icon: Globe,
       color: '#0284C7',
       badge: 'AI / ML Classified',
+    },
+    {
+      id: 'encrypted_malware',
+      name: 'Encrypted Malware (JA3 Signature)',
+      description: 'TLS Client Hello handshakes matching curated Cobalt Strike and TrickBot threat intel blocklists.',
+      icon: Shield,
+      color: '#7C3AED',
+      badge: 'Cryptographic JA3',
     },
     {
       id: 'exfiltration',

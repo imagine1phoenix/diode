@@ -8,7 +8,6 @@ import EvidenceModal from './components/EvidenceModal';
 import SimulateModal from './components/SimulateModal';
 import AITriageDrawer from './components/AITriageDrawer';
 import PipelineInspectorModal from './components/PipelineInspectorModal';
-import VoiceAuditAssist from './components/VoiceAuditAssist';
 import { useAlertStream } from './hooks/useAlertStream';
 import { List, Globe2, Bot, Activity, Zap, Sparkles, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 
@@ -453,12 +452,6 @@ export default function App() {
           )}
         </div>
       </main>
-
-      {/* Floating Tactical Voice Action Assist */}
-      <VoiceAuditAssist
-        topAlert={alerts[0]}
-        onInspectAlert={(a) => setSelectedAlert(a)}
-      />
 
       {/* Footer */}
       <footer style={{

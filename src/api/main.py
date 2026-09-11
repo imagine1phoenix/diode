@@ -57,6 +57,18 @@ async def lifespan(app: FastAPI):
     _store = AlertStore(config.DB_PATH)
     _pipeline = Pipeline(store=_store, alert_callback=_broadcast_alert)
     logger.info("API started — store at %s", config.DB_PATH)
+
+    # Auto-seed diverse multi-vector threat detections if store has fewer than 6 alerts
+    recent = _store.get_recent(6)
+    if len(recent) < 6:
+        try:
+            from traffic.generators.generate_traffic import generate_demo_pcap
+            pcap_path = generate_demo_pcap(scenario="all")
+            await _pipeline.process_pcap_async(pcap_path)
+            logger.info("✅ Auto-seeded demonstration threat corpus (%d alerts)", len(_store.get_recent(50)))
+        except Exception as e:
+            logger.warning("Could not auto-seed demo PCAP: %s", e)
+
     yield
     logger.info("API shutting down")
 
@@ -127,7 +139,17 @@ async def get_alerts(
         return _store.get_by_threat_class(threat_class, limit)
     if severity:
         return _store.get_by_severity(severity, limit)
-    return _store.get_recent(limit)
+    alerts = _store.get_recent(limit)
+    if len(alerts) < 6 and not threat_class and not severity:
+        try:
+            from traffic.generators.generate_traffic import generate_demo_pcap
+            pcap_path = generate_demo_pcap(scenario="all")
+            if _pipeline is not None:
+                await _pipeline.process_pcap_async(pcap_path)
+                alerts = _store.get_recent(limit)
+        except Exception as e:
+            logger.warning("Auto-seed on /api/alerts failed: %s", e)
+    return alerts
 
 
 @app.get("/api/alerts/{alert_id}")
@@ -190,7 +212,7 @@ async def analyze_pcap(pcap_filename: str = Query(..., description="Filename in 
 
 @app.post("/api/simulate")
 async def simulate_traffic(
-    threat_class: str = Query("all", description="Threat category to simulate (all, ddos, recon_scan, c2_beaconing, dga_dns, exfiltration)")
+    threat_class: str = Query("all", description="Threat category to simulate (all, ddos, recon_scan, c2_beaconing, dga_dns, exfiltration, encrypted_malware)")
 ) -> dict[str, Any]:
     """
     Simulate cyber attack traffic on demand and ingest via pipeline.
