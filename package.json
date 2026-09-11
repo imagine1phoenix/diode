@@ -1,0 +1,24 @@
+{
+  "name": "sih-cyber-threat-detection",
+  "version": "1.0.0",
+  "description": "AI-Based Detection of Cyber Threats in Unidirectional IP Traffic",
+  "main": "main.py",
+  "scripts": {
+    "build": "node -e \"const fs = require('fs'); const path = require('path'); const vendorDir = path.join('dashboard', 'vendor'); if (!fs.existsSync(vendorDir)) fs.mkdirSync(vendorDir, { recursive: true }); const chartSrc = path.join('node_modules', 'chart.js', 'dist', 'chart.umd.js'); if (fs.existsSync(chartSrc)) { fs.copyFileSync(chartSrc, path.join(vendorDir, 'chart.umd.js')); console.log('  Vendor: copied Chart.js to dashboard/vendor/chart.umd.js'); } const files = ['dashboard/index.html', 'dashboard/style.css', 'dashboard/app.js']; files.forEach(f => { if (!fs.existsSync(f)) throw new Error('Missing ' + f); console.log('  Verified: ' + f + ' (' + fs.statSync(f).size + ' bytes)'); }); console.log('Build completed successfully.');\"",
+    "start": "python3 main.py --serve",
+    "dev": "python3 main.py",
+    "test": "npm run build && python3 -m unittest discover -s tests -p 'test_*.py'"
+  },
+  "keywords": [
+    "sih",
+    "cyber-threat-detection",
+    "unidirectional-traffic",
+    "fastapi",
+    "chartjs"
+  ],
+  "author": "SIH Team",
+  "license": "MIT",
+  "dependencies": {
+    "chart.js": "^4.4.7"
+  }
+}

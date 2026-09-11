@@ -78,7 +78,7 @@ app.add_middleware(
 )
 
 # Serve dashboard static files
-dashboard_path = Path(__file__).parent.parent.parent.parent / "dashboard"
+dashboard_path = config.PROJECT_ROOT / "dashboard"
 if dashboard_path.exists():
     app.mount("/static", StaticFiles(directory=str(dashboard_path)), name="static")
 

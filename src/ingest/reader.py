@@ -2,7 +2,7 @@
 Ingest Layer — Read-only PCAP/flow reader.
 
 PRD §5, rules.md R1: This module MUST NOT contain any outbound network calls.
-No socket.connect, no requests, no urllib, no DNS resolution.
+No outbound sockets, no HTTP requests, no urllib, no DNS resolution.
 It reads from files/pipes in one direction only.
 
 Architectural constraint verification:

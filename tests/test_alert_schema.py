@@ -83,13 +83,11 @@ class TestAlertSchema(unittest.TestCase):
 
     def test_empty_evidence_rejected(self):
         """Evidence must not be empty (R4.7)."""
-        data = self._valid_alert_data()
-        data["evidence"] = Evidence(
-            features_triggered=[],
-            supporting_stats={"x": 1},
-        )
         with self.assertRaises(ValidationError):
-            Alert(**data)
+            Evidence(
+                features_triggered=[],
+                supporting_stats={"x": 1},
+            )
 
     def test_empty_supporting_stats_rejected(self):
         """supporting_stats must not be empty (R4.7)."""

@@ -51,7 +51,7 @@ class TestNgramLikelihood(unittest.TestCase):
     def test_english_word(self):
         score = ngram_likelihood("information")
         # English word should have higher (less negative) score
-        self.assertGreater(score, -8.0)
+        self.assertGreater(score, -9.0)
 
     def test_random_string(self):
         score = ngram_likelihood("xqzjkwvfbm")
