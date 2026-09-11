@@ -24,7 +24,10 @@ export default function ThreatDonutChart({ threatStats = {} }) {
   const total = dataValues.reduce((a, b) => a + b, 0);
 
   const data = {
-    labels: keys.map((k) => THREAT_CONFIG[k].label),
+    labels: keys.map((k) => {
+      const cnt = threatStats[k] || 0;
+      return cnt > 0 ? `${THREAT_CONFIG[k].label} (${cnt})` : THREAT_CONFIG[k].label;
+    }),
     datasets: [
       {
         data: dataValues,

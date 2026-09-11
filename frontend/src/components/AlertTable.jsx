@@ -169,7 +169,13 @@ export default function AlertTable({ alerts = [], onSelectAlert, onOpenTriage })
   const [expandedAlertId, setExpandedAlertId] = useState(null);
 
   const filteredAlerts = useMemo(() => {
+    const seen = new Set();
     return alerts.filter((alert) => {
+      // Defensive deduplication key
+      const key = alert.alert_id || `${alert.flow_id}-${alert.threat_class}-${alert.timestamp}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+
       if (severityFilter !== 'all' && alert.severity !== severityFilter) return false;
       if (threatFilter !== 'all' && alert.threat_class !== threatFilter) return false;
       if (searchTerm.trim()) {

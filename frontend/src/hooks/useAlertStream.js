@@ -38,7 +38,35 @@ export function useAlertStream() {
 
       if (alertsRes.ok) {
         const alertList = await alertsRes.json();
-        setAlerts(alertList);
+        // Deduplicate incoming list by alert_id and flow signature
+        const seen = new Set();
+        const uniqueAlerts = [];
+        for (const a of alertList) {
+          const key = a.alert_id || `${a.flow_id}-${a.threat_class}-${a.timestamp}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueAlerts.push(a);
+          }
+        }
+        setAlerts(uniqueAlerts);
+
+        // Harmonize stats with the loaded alerts
+        if (uniqueAlerts.length > 0) {
+          const byThreat = {};
+          const bySev = {};
+          for (const a of uniqueAlerts) {
+            const tc = a.threat_class || 'unknown';
+            const sev = a.severity || 'low';
+            byThreat[tc] = (byThreat[tc] || 0) + 1;
+            bySev[sev] = (bySev[sev] || 0) + 1;
+          }
+          setStats((prev) => ({
+            ...prev,
+            total_alerts: uniqueAlerts.length,
+            by_threat_class: byThreat,
+            by_severity: bySev,
+          }));
+        }
       }
 
       if (timelineRes.ok) {
@@ -85,9 +113,18 @@ export function useAlertStream() {
       ws.onmessage = (event) => {
         try {
           const alert = JSON.parse(event.data);
-          setAlerts((prev) => [alert, ...prev.slice(0, 249)]);
+          const key = alert.alert_id || `${alert.flow_id}-${alert.threat_class}-${alert.timestamp}`;
 
-          // Increment stats in real time
+          setAlerts((prev) => {
+            const exists = prev.some((a) => {
+              const prevKey = a.alert_id || `${a.flow_id}-${a.threat_class}-${a.timestamp}`;
+              return prevKey === key;
+            });
+            if (exists) return prev; // Avoid duplicate alerts
+            return [alert, ...prev.slice(0, 249)];
+          });
+
+          // Increment stats in real time only if not duplicate
           setStats((prev) => {
             const threatClass = alert.threat_class || 'unknown';
             const severity = alert.severity || 'low';

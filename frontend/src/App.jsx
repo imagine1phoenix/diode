@@ -448,7 +448,7 @@ export default function App() {
           {/* Secondary Telemetry: Threat Vector & Velocity Radar (Behind Toggle) */}
           {showRadar && (
             <section style={{ minWidth: 0 }}>
-              <ThreatRadarPanel stats={stats} timeline={timeline} />
+              <ThreatRadarPanel stats={stats} timeline={timeline} alerts={alerts} />
             </section>
           )}
         </div>
