@@ -66,7 +66,7 @@ C2_MIN_CONNECTIONS: int = int(os.getenv("SIH_C2_MIN_CONNS", "10"))
 # Detection thresholds — DGA / DNS Tunnelling (PRD §7)
 # ---------------------------------------------------------------------------
 DGA_ENTROPY_THRESHOLD: float = float(os.getenv("SIH_DGA_ENTROPY", "3.5"))
-DGA_NGRAM_THRESHOLD: float = float(os.getenv("SIH_DGA_NGRAM", "0.3"))
+DGA_NGRAM_THRESHOLD: float = float(os.getenv("SIH_DGA_NGRAM", "-9.2"))
 DGA_QUERY_LENGTH_THRESHOLD: int = int(os.getenv("SIH_DGA_QUERY_LEN", "20"))
 
 # ---------------------------------------------------------------------------
@@ -81,3 +81,9 @@ MALWARE_JA3_BLOCKLIST_PATH: Path = Path(
 # ---------------------------------------------------------------------------
 EXFIL_BYTE_RATIO_THRESHOLD: float = float(os.getenv("SIH_EXFIL_RATIO", "10.0"))
 EXFIL_DURATION_THRESHOLD: float = float(os.getenv("SIH_EXFIL_DURATION", "60.0"))
+
+# ---------------------------------------------------------------------------
+# Alert Deduplication & Cooldown (PRD §6, rules.md R4)
+# ---------------------------------------------------------------------------
+ALERT_COOLDOWN_SECONDS: float = float(os.getenv("SIH_ALERT_COOLDOWN", "10.0"))
+

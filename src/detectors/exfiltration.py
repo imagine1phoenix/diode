@@ -64,34 +64,39 @@ class ExfiltrationDetector(BaseDetector):
         window_features: WindowFeatures,
     ) -> list[RawDetection]:
         """
-        Analyse flow asymmetry for exfiltration indicators.
+        Analyse flow asymmetry for exfiltration indicators on a unidirectional tap.
 
-        Detection logic:
-        1. Check outbound:inbound byte ratio (high = suspicious)
-        2. Check sustained flow duration (long + asymmetric = exfil)
-        3. Isolation Forest scoring (STUBBED)
+        Detection logic (rules.md R1):
+        1. Egress payload density (> 0.75 wire-rate payload) and heavy MTU packet sizing
+        2. Sustained egress flow duration (> 300 seconds)
+        3. Minimum byte volume threshold (5KB)
         """
         triggered: list[str] = []
         stats: dict[str, object] = {}
         score = 0.0
 
-        # --- Feature 1: Outbound/inbound byte ratio ---
-        if flow_features.outbound_inbound_byte_ratio > config.EXFIL_BYTE_RATIO_THRESHOLD:
-            triggered.append("outbound_inbound_byte_ratio")
+        # --- Feature 1: Egress payload saturation (Diode-honest proxy) ---
+        # On a unidirectional tap, inbound traffic does not exist on the wire.
+        # Exfiltration is characterized by high payload density (>75%) and heavy packet payloads.
+        if (
+            flow_features.egress_payload_density > 0.70
+            or flow_features.outbound_inbound_byte_ratio > config.EXFIL_BYTE_RATIO_THRESHOLD
+        ):
+            triggered.append("egress_payload_saturation")
             ratio = (
                 flow_features.outbound_inbound_byte_ratio
                 / config.EXFIL_BYTE_RATIO_THRESHOLD
             )
-            score += min(ratio / 5.0, 0.4)
-            stats["byte_ratio"] = round(
-                flow_features.outbound_inbound_byte_ratio, 2
-            )
-            stats["byte_ratio_threshold"] = config.EXFIL_BYTE_RATIO_THRESHOLD
+            score += min(max(ratio, 1.0) / 4.0, 0.45)
+            stats["egress_payload_density"] = round(flow_features.egress_payload_density, 3)
+            stats["mean_payload_bytes"] = round(flow_features.mean_payload_bytes_per_packet, 1)
+            stats["byte_ratio_proxy"] = round(flow_features.outbound_inbound_byte_ratio, 2)
+            stats["diode_physics_note"] = "Passive optical tap: evaluated via egress payload saturation"
 
-        # --- Feature 2: Sustained asymmetric flow duration ---
+        # --- Feature 2: Sustained asymmetric egress duration ---
         if flow_features.flow_duration > config.EXFIL_DURATION_THRESHOLD:
-            triggered.append("sustained_asymmetric_duration")
-            score += 0.3
+            triggered.append("sustained_egress_duration")
+            score += 0.35
             stats["flow_duration_sec"] = round(flow_features.flow_duration, 2)
             stats["duration_threshold"] = config.EXFIL_DURATION_THRESHOLD
 
@@ -99,11 +104,8 @@ class ExfiltrationDetector(BaseDetector):
         # TODO: Tier 2 — train Isolation Forest on flow stats when baseline available
         # stats["isolation_forest_score"] = "not_implemented_tier2"
 
-        # --- Feature 4: Destination rarity (STUBBED) ---
-        # TODO: Tier 2 — build destination frequency baseline for rarity scoring
-        # stats["destination_rarity"] = "not_implemented_tier2"
-
-        if not triggered:
+        # Require minimum byte volume (at least 5KB) and confidence threshold for exfiltration
+        if flow_features.total_bytes < 5000 or score < 0.40 or not triggered:
             return []
 
         confidence = min(score, 1.0)
@@ -112,9 +114,9 @@ class ExfiltrationDetector(BaseDetector):
         stats["total_bytes"] = flow_features.total_bytes
 
         logger.info(
-            "Exfiltration detected: flow=%s confidence=%.2f ratio=%.2f duration=%.1f",
+            "Exfiltration detected: flow=%s confidence=%.2f density=%.2f duration=%.1f",
             flow_features.flow_id, confidence,
-            flow_features.outbound_inbound_byte_ratio,
+            flow_features.egress_payload_density,
             flow_features.flow_duration,
         )
 

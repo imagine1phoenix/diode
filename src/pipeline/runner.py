@@ -181,7 +181,8 @@ class Pipeline:
             all_raw.extend(raw)
 
         # Stage 5: Normalization
-        alerts = normalize(all_raw)
+        alerts = normalize(all_raw, apply_cooldown=True)
+
 
         # Stage 6: Store
         if alerts:

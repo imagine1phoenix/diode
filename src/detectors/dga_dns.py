@@ -30,10 +30,13 @@ from __future__ import annotations
 
 import logging
 
+import joblib
+
 import config
 from src.alert.schema import Severity, ThreatClass
 from src.detectors.base import BaseDetector, RawDetection
 from src.features.extractor import FlowFeatures, WindowFeatures
+from src.models.train_dga import extract_domain_features
 
 logger = logging.getLogger(__name__)
 
@@ -41,16 +44,33 @@ logger = logging.getLogger(__name__)
 class DGADNSDetector(BaseDetector):
     """
     Detects DGA-generated domain names and DNS tunnelling using
-    character entropy, n-gram analysis, and query metadata.
+    a trained Random Forest ML model alongside character entropy,
+    n-gram analysis, and query metadata.
     """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.rf_model = None
+        self.feature_names: list[str] = []
+        self.feature_importances: dict[str, float] = {}
+        model_path = config.MODELS_DIR / "dga_rf_model.joblib"
+        if model_path.exists():
+            try:
+                payload = joblib.load(model_path)
+                self.rf_model = payload.get("model")
+                self.feature_names = payload.get("feature_names", [])
+                self.feature_importances = payload.get("feature_importances", {})
+                logger.info("Loaded trained DGA Random Forest classifier from %s", model_path)
+            except Exception as e:
+                logger.warning("Could not load DGA ML model, falling back to rule-based: %s", e)
 
     @property
     def name(self) -> str:
-        return "DGA / DNS Tunnelling Detector"
+        return "DGA / DNS Tunnelling Detector (AI-Powered)"
 
     @property
     def version(self) -> str:
-        return "0.1.0"
+        return "1.0.0"
 
     @property
     def threat_class(self) -> ThreatClass:
@@ -120,6 +140,20 @@ class DGADNSDetector(BaseDetector):
                 flow_features.txt_null_record_ratio, 4
             )
 
+        # --- Feature 5: Trained Random Forest Classifier (PRD §4 "AI-Based") ---
+        query_text = flow_features.dns_query or ""
+        if self.rf_model is not None and query_text:
+            try:
+                feat_vec = extract_domain_features(query_text)
+                prob_dga = float(self.rf_model.predict_proba([feat_vec])[0][1])
+                stats["ml_model"] = "RandomForest-v1.0"
+                stats["ml_dga_probability"] = round(prob_dga, 4)
+                if prob_dga >= 0.50:
+                    triggered.append("ml_random_forest")
+                    score += prob_dga * 0.45
+            except Exception as e:
+                logger.debug("Random Forest inference error: %s", e)
+
         # --- Emit detection if any features triggered ---
         if not triggered:
             return []
@@ -147,16 +181,18 @@ class DGADNSDetector(BaseDetector):
     @staticmethod
     def _map_severity(confidence: float, triggered: list[str]) -> Severity:
         """
-        Map to severity. DNS tunnelling (query_length + TXT/NULL) is
-        higher severity than standalone DGA detection.
+        Map to severity with strict confidence-severity alignment (PRD §6).
+        DNS tunnelling (query_length + TXT/NULL) with multi-feature proof
+        qualifies for CRITICAL.
         """
         is_tunnelling = (
             "query_length" in triggered or "txt_null_record_ratio" in triggered
         )
-        if confidence >= 0.7 and is_tunnelling:
+        if confidence >= 0.88 and (is_tunnelling or len(triggered) >= 2):
             return Severity.CRITICAL
-        if confidence >= 0.6:
+        if confidence >= 0.72:
             return Severity.HIGH
-        if confidence >= 0.3:
+        if confidence >= 0.55:
             return Severity.MEDIUM
         return Severity.LOW
+

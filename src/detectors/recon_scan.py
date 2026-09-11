@@ -112,8 +112,9 @@ class ReconScanDetector(BaseDetector):
             stats["bytes_per_flow"] = round(flow_features.bytes_per_flow, 2)
             stats["low_bytes_threshold"] = config.RECON_LOW_BYTES_THRESHOLD
 
-        # --- Emit detection if any features triggered ---
-        if not triggered:
+        # --- Require port or host fan-out for recon detection ---
+        has_fanout = any(t in triggered for t in ["distinct_dst_ports_per_src", "distinct_dst_hosts_per_src"])
+        if not has_fanout or score < 0.40:
             return []
 
         confidence = min(score, 1.0)
@@ -138,9 +139,12 @@ class ReconScanDetector(BaseDetector):
 
     @staticmethod
     def _map_severity(confidence: float) -> Severity:
-        """Map confidence score to severity level."""
-        if confidence >= 0.8:
+        """Map confidence score to standardized severity level (PRD §6)."""
+        if confidence >= 0.88:
+            return Severity.CRITICAL
+        if confidence >= 0.72:
             return Severity.HIGH
-        if confidence >= 0.5:
+        if confidence >= 0.55:
             return Severity.MEDIUM
         return Severity.LOW
+

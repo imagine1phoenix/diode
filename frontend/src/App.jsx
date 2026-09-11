@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import StatsCards from './components/StatsCards';
-import ThreatDonutChart from './components/ThreatDonutChart';
-import SeverityBarChart from './components/SeverityBarChart';
-import TimelineAreaChart from './components/TimelineAreaChart';
 import AlertTable from './components/AlertTable';
+import ThreatRadarPanel from './components/ThreatRadarPanel';
 import EvidenceModal from './components/EvidenceModal';
 import SimulateModal from './components/SimulateModal';
 import { useAlertStream } from './hooks/useAlertStream';
@@ -35,40 +33,44 @@ export default function App() {
       />
 
       {/* Main SOC Dashboard Viewport */}
-      <main style={{ flex: 1, padding: '24px 28px', maxWidth: '1600px', width: '100%', margin: '0 auto' }}>
-        {/* Metric Summary Cards */}
+      <main style={{ flex: 1, padding: '18px 24px', maxWidth: '1680px', width: '100%', margin: '0 auto' }}>
+        {/* Executive Metric Summary Strip */}
         <StatsCards stats={stats} />
 
-        {/* Analytics Charts Grid */}
+        {/* Primary Workspace: Alert Feed (Hero) + Threat Radar Panel */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+          gridTemplateColumns: 'minmax(0, 1fr) 380px',
           gap: '20px',
-        }}>
-          <ThreatDonutChart threatStats={stats.by_threat_class} />
-          <SeverityBarChart severityStats={stats.by_severity} />
-          <TimelineAreaChart timeline={timeline} />
-        </div>
+          alignItems: 'start',
+        }} className="soc-grid">
+          {/* Hero Focal Point: Live Streaming Alert Feed */}
+          <section style={{ minWidth: 0 }}>
+            <AlertTable alerts={alerts} onSelectAlert={(a) => setSelectedAlert(a)} />
+          </section>
 
-        {/* Live Streaming Alert Table */}
-        <AlertTable alerts={alerts} onSelectAlert={(a) => setSelectedAlert(a)} />
+          {/* Secondary Telemetry: Threat Vector & Velocity Radar */}
+          <section style={{ minWidth: 0 }}>
+            <ThreatRadarPanel stats={stats} timeline={timeline} />
+          </section>
+        </div>
       </main>
 
       {/* Footer */}
       <footer style={{
-        padding: '20px 28px',
+        padding: '16px 24px',
         borderTop: '1px solid var(--bg-card-border)',
         textAlign: 'center',
-        fontSize: '12px',
+        fontSize: '11px',
         color: 'var(--text-muted)',
       }}>
-        Smart India Hackathon • Unidirectional Data Diode AI Threat Detection Architecture (PRD §5 Compliant)
+        Smart India Hackathon • Unidirectional Physical Data Diode Tap • AI Threat Classification Pipeline
       </footer>
 
       {/* Forensics Drill-down Modal */}
       <EvidenceModal alert={selectedAlert} onClose={() => setSelectedAlert(null)} />
 
-      {/* Attack Injection Console */}
+      {/* Safe Demo Attack Simulation Console */}
       <SimulateModal
         isOpen={isSimulateOpen}
         onClose={() => setIsSimulateOpen(false)}

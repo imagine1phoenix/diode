@@ -184,22 +184,24 @@ async def analyze_pcap(pcap_filename: str = Query(..., description="Filename in 
 
 @app.post("/api/simulate")
 async def simulate_traffic(
-    threat_class: str = Query("all", description="Threat category to simulate (all, ddos, scan, c2, dga)")
+    threat_class: str = Query("all", description="Threat category to simulate (all, ddos, recon_scan, c2_beaconing, dga_dns, exfiltration)")
 ) -> dict[str, Any]:
     """
     Simulate cyber attack traffic on demand and ingest via pipeline.
-    Alerts are stored and broadcast live to connected WebSocket clients.
+    Targeted attacks generate scenario-specific PCAPs, streaming alerts live
+    to connected WebSocket clients and updating radar charts dynamically.
     """
     assert _pipeline is not None
     from traffic.generators.generate_traffic import generate_demo_pcap
 
     logger.info("Triggering on-demand traffic simulation (threat_class=%s)", threat_class)
-    pcap_path = generate_demo_pcap()
+    pcap_path = generate_demo_pcap(scenario=threat_class)
     alerts = await _pipeline.process_pcap_async(pcap_path)
 
     return {
         "status": "success",
         "threat_class": threat_class,
+        "pcap_file": str(pcap_path),
         "alerts_generated": len(alerts),
         "throughput": _pipeline.throughput.report(),
     }

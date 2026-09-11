@@ -75,7 +75,7 @@ class DDoSDetector(BaseDetector):
 
         # --- Feature 1: Flow rate (window-level) ---
         if window_features.flow_rate_per_sec > config.DDOS_FLOW_RATE_THRESHOLD:
-            triggered.append("flow_rate_per_sec")
+            triggered.append("high_flow_rate")
             # Score proportional to how much it exceeds threshold
             ratio = window_features.flow_rate_per_sec / config.DDOS_FLOW_RATE_THRESHOLD
             score += min(ratio / 5.0, 0.35)  # Max contribution: 0.35
@@ -110,8 +110,9 @@ class DDoSDetector(BaseDetector):
             )
             stats["uniformity_threshold"] = config.DDOS_PKT_SIZE_UNIFORMITY_THRESHOLD
 
-        # --- Emit detection if any features triggered ---
-        if not triggered:
+        # --- Require primary DDoS indicator (rate, entropy, or SYN flood) ---
+        has_primary = any(t in triggered for t in ["high_flow_rate", "source_ip_entropy_low", "syn_ack_ratio"])
+        if not has_primary or score < 0.40:
             return []
 
         confidence = min(score, 1.0)
@@ -137,11 +138,12 @@ class DDoSDetector(BaseDetector):
 
     @staticmethod
     def _map_severity(confidence: float) -> Severity:
-        """Map confidence score to severity level."""
-        if confidence >= 0.8:
+        """Map confidence score to standardized severity level (PRD §6)."""
+        if confidence >= 0.88:
             return Severity.CRITICAL
-        if confidence >= 0.6:
+        if confidence >= 0.72:
             return Severity.HIGH
-        if confidence >= 0.4:
+        if confidence >= 0.55:
             return Severity.MEDIUM
         return Severity.LOW
+

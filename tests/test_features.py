@@ -50,18 +50,28 @@ class TestIPEntropy(unittest.TestCase):
 class TestNgramLikelihood(unittest.TestCase):
     def test_english_word(self):
         score = ngram_likelihood("information")
-        # English word should have higher (less negative) score
+        # English word should have higher (less negative) score than calibrated -9.5 threshold
         self.assertGreater(score, -9.0)
 
     def test_random_string(self):
         score = ngram_likelihood("xqzjkwvfbm")
-        # Random string should have lower (more negative) score
-        self.assertLess(score, -5.0)
+        # Random string should have lower (more negative) score below -9.5
+        self.assertLess(score, -9.5)
 
     def test_english_scores_higher_than_random(self):
         english = ngram_likelihood("theinternetworks")
         random_str = ngram_likelihood("xqzjkwvfbmplry")
         self.assertGreater(english, random_str)
+
+    def test_calibrated_threshold_separation(self):
+        import config
+        legit_domains = ["google", "youtube", "amazon", "microsoft", "wikipedia"]
+        dga_domains = ["xkwqtzpj129", "ab3kf9x2qlm7", "zypqjklmwx", "qtxwzplk"]
+        for domain in legit_domains:
+            self.assertGreater(ngram_likelihood(domain), config.DGA_NGRAM_THRESHOLD, f"Legitimate domain {domain} falsely flagged")
+        for domain in dga_domains:
+            self.assertLess(ngram_likelihood(domain), config.DGA_NGRAM_THRESHOLD, f"DGA domain {domain} missed")
+
 
 
 class TestDomainEntropy(unittest.TestCase):

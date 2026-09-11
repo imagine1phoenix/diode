@@ -73,6 +73,7 @@ class FlowFeatures:
     query_length: int = 0
     txt_null_record_ratio: float = 0.0
     has_dns: bool = False
+    dns_query: str = ""
 
     # --- Encrypted Malware features (Tier 2, PRD §7 row 5) ---
     ja3_fingerprint: str = ""
@@ -80,8 +81,11 @@ class FlowFeatures:
     timing_sequence: list[float] = field(default_factory=list)
 
     # --- Exfiltration features (Tier 2, PRD §7 row 6) ---
-    outbound_inbound_byte_ratio: float = 0.0
+    outbound_inbound_byte_ratio: float = 0.0  # Backward-compatible proxy: average payload bytes per packet
+    egress_payload_density: float = 0.0       # Ratio of payload bytes to total wire bytes [0.0, 1.0]
+    mean_payload_bytes_per_packet: float = 0.0 # Average payload size per packet
     flow_duration: float = 0.0
+
 
 
 @dataclass
@@ -108,6 +112,8 @@ class WindowFeatures:
     # --- C2 window features ---
     # Maps: src_ip -> set of dst_ips contacted
     destinations_per_src: dict[str, set[str]] = field(default_factory=dict)
+    # Maps: (src_ip, dst_ip) -> list of start_times of flows between host pair
+    host_pair_connection_times: dict[tuple[str, str], list[float]] = field(default_factory=dict)
 
 
 def extract_flow_features(flow: FlowRecord) -> FlowFeatures:
@@ -163,6 +169,7 @@ def extract_flow_features(flow: FlowRecord) -> FlowFeatures:
         features.has_dns = True
         # Use the first (or most common) query for entropy analysis
         query = flow.dns_queries[0]
+        features.dns_query = query
         features.domain_name_entropy = domain_entropy(query)
         features.ngram_likelihood_score = ngram_likelihood(query)
         features.query_length = len(query)
@@ -178,16 +185,17 @@ def extract_flow_features(flow: FlowRecord) -> FlowFeatures:
         features.ja3_fingerprint = flow.tls_ja3_fingerprints[0]
     features.packet_size_sequence = flow.packet_sizes
 
-    # --- Exfiltration (Tier 2) ---
-    # For single-direction tap, estimate ratio from payload sizes
-    if flow.payload_sizes:
-        outbound = sum(s for s in flow.payload_sizes if s > 0)
-        # In unidirectional tap, we see one direction — ratio is bytes/packet_count
-        # as a proxy for asymmetry
-        features.outbound_inbound_byte_ratio = (
-            outbound / max(flow.packet_count, 1)
-        )
+    # --- Exfiltration (Tier 2, PRD §7 row 6) ---
+    # Data Diode Physical Constraint: On an optical unidirectional tap (rules.md R1),
+    # return/inbound traffic physically cannot traverse the diode. Exfiltration is
+    # determined via egress payload density, MTU saturation, and sustained duration.
+    if flow.total_bytes > 0 and flow.payload_sizes:
+        total_payload = sum(s for s in flow.payload_sizes if s > 0)
+        features.egress_payload_density = total_payload / flow.total_bytes
+        features.mean_payload_bytes_per_packet = total_payload / max(flow.packet_count, 1)
+        features.outbound_inbound_byte_ratio = features.mean_payload_bytes_per_packet
     features.flow_duration = flow.duration
+
 
     return features
 
@@ -247,5 +255,10 @@ def extract_window_features(flows: list[FlowRecord]) -> WindowFeatures:
         if f.src_ip not in wf.destinations_per_src:
             wf.destinations_per_src[f.src_ip] = set()
         wf.destinations_per_src[f.src_ip].add(f.dst_ip)
+
+        # Host-pair connection arrival times for multi-connection C2 beaconing
+        if f.start_time > 0:
+            pair = (f.src_ip, f.dst_ip)
+            wf.host_pair_connection_times.setdefault(pair, []).append(f.start_time)
 
     return wf

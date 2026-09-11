@@ -31,13 +31,13 @@ export default function TimelineAreaChart({ timeline = [] }) {
       {
         fill: true,
         data: values,
-        borderColor: '#06b6d4',
-        backgroundColor: 'rgba(6, 182, 212, 0.12)',
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
         borderWidth: 2,
         tension: 0.35,
         pointRadius: 2,
-        pointHoverRadius: 6,
-        pointBackgroundColor: '#06b6d4',
+        pointHoverRadius: 5,
+        pointBackgroundColor: '#6366f1',
       },
     ],
   };
@@ -50,35 +50,35 @@ export default function TimelineAreaChart({ timeline = [] }) {
       tooltip: {
         backgroundColor: '#0f172a',
         titleColor: '#f8fafc',
-        bodyColor: '#06b6d4',
-        borderColor: 'rgba(6, 182, 212, 0.25)',
+        bodyColor: '#a5b4fc',
+        borderColor: 'rgba(99, 102, 241, 0.25)',
         borderWidth: 1,
-        padding: 10,
-        cornerRadius: 8,
+        padding: 8,
+        cornerRadius: 6,
       },
     },
     scales: {
       x: {
-        grid: { color: 'rgba(148, 163, 184, 0.05)' },
-        ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } },
+        grid: { color: 'rgba(148, 163, 184, 0.04)' },
+        ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 6 },
         border: { display: false },
       },
       y: {
-        grid: { color: 'rgba(148, 163, 184, 0.08)' },
-        ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 10 } },
+        grid: { color: 'rgba(148, 163, 184, 0.06)' },
+        ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 9 }, precision: 0 },
         border: { display: false },
       },
     },
   };
 
   return (
-    <div className="glass-panel" style={{ padding: '20px', height: '360px', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-        <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#f8fafc' }}>
-          Real-Time Threat Volume Timeline
+    <div className="glass-panel" style={{ padding: '16px 18px', height: '180px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#f8fafc' }}>
+          Threat Detection Velocity
         </h3>
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-          Sliding Window (10s size, 5s overlap)
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+          Sliding Window Trend
         </span>
       </div>
       <div style={{ flex: 1, position: 'relative' }}>

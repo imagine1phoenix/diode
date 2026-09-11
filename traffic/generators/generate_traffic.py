@@ -333,41 +333,100 @@ def generate_dns_tunnel(count: int = 50) -> list:
 
 
 # =====================================================================
-# Main — Generate combined PCAP
+# Attack Traffic — Data Exfiltration (PRD §7 row 6)
 # =====================================================================
 
-def generate_demo_pcap(output_path: Path | None = None) -> Path:
+def generate_exfiltration(count: int = 150, src_ip: str = "192.168.1.55", exfil_server: str = "198.51.100.77") -> list:
     """
-    Generate a combined PCAP file with benign + all attack types.
-    This is the primary demo/test dataset.
+    Generate asymmetric large-volume outbound exfiltration flow.
+
+    Characteristics:
+    - High outbound:inbound byte ratio (> 10:1)
+    - Sustained flow duration (> 300 seconds)
+    - Heavy outbound payloads
+    """
+    packets = []
+    base_time = time.time() - 350.0
+    sport = _random_port()
+    dport = 443
+
+    syn = IP(src=src_ip, dst=exfil_server) / TCP(sport=sport, dport=dport, flags="S")
+    syn.time = base_time
+    packets.append(syn)
+
+    synack = IP(src=exfil_server, dst=src_ip) / TCP(sport=dport, dport=sport, flags="SA")
+    synack.time = base_time + 0.05
+    packets.append(synack)
+
+    for i in range(count):
+        t = base_time + 0.1 + (i / count) * 330.0
+        data = (
+            IP(src=src_ip, dst=exfil_server)
+            / TCP(sport=sport, dport=dport, flags="PA")
+            / Raw(load=os.urandom(1400))
+        )
+        data.time = t
+        packets.append(data)
+
+    logger.info("Generated %d exfiltration packets (%s → %s)", len(packets), src_ip, exfil_server)
+    return packets
+
+
+# =====================================================================
+# Main — Generate combined or scenario-targeted PCAP
+# =====================================================================
+
+def generate_demo_pcap(output_path: Path | None = None, scenario: str = "all") -> Path:
+    """
+    Generate a PCAP file containing benign background traffic plus
+    targeted attack vectors according to `scenario`.
+
+    Supported scenarios:
+        - "all": Full suite (DDoS, Scan, C2, DGA DNS, Tunnel, Exfil)
+        - "ddos": High-rate SYN flood & UDP amplification
+        - "recon_scan" / "scan": Port scan and horizontal host sweep
+        - "c2_beaconing" / "c2": Botnet C2 periodic beaconing heartbeats
+        - "dga_dns" / "dga": Algorithmically generated domains & DNS tunnel
+        - "exfiltration" / "exfil": Asymmetric large-payload outbound flow
     """
     if output_path is None:
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-        output_path = OUTPUT_DIR / "demo_traffic.pcap"
+        filename = "demo_traffic.pcap" if scenario == "all" else f"simulate_{scenario}.pcap"
+        output_path = OUTPUT_DIR / filename
 
     all_packets = []
+    norm = scenario.lower().replace("-", "_").strip()
 
-    # Benign traffic
-    all_packets.extend(generate_benign_web(200))
-    all_packets.extend(generate_benign_dns(100))
+    # Always inject standard benign background traffic so baseline is realistic
+    all_packets.extend(generate_benign_web(150))
+    all_packets.extend(generate_benign_dns(80))
 
-    # Tier 1 attacks
-    all_packets.extend(generate_syn_flood(500))
-    all_packets.extend(generate_udp_amplification(300))
-    all_packets.extend(generate_port_scan())
-    all_packets.extend(generate_host_sweep())
-    all_packets.extend(generate_c2_beaconing())
-    all_packets.extend(generate_dga_dns())
-    all_packets.extend(generate_dns_tunnel())
+    if norm in ("all", "ddos"):
+        all_packets.extend(generate_syn_flood(500))
+        all_packets.extend(generate_udp_amplification(300))
 
-    # Sort by timestamp
+    if norm in ("all", "recon_scan", "scan", "recon"):
+        all_packets.extend(generate_port_scan())
+        all_packets.extend(generate_host_sweep())
+
+    if norm in ("all", "c2_beaconing", "c2", "beaconing"):
+        all_packets.extend(generate_c2_beaconing())
+
+    if norm in ("all", "dga_dns", "dga", "dns"):
+        all_packets.extend(generate_dga_dns(90))
+        all_packets.extend(generate_dns_tunnel(50))
+
+    if norm in ("all", "exfiltration", "exfil"):
+        all_packets.extend(generate_exfiltration(150))
+
+    # Sort packets strictly by timestamp
     all_packets.sort(key=lambda p: float(p.time))
 
     # Write PCAP
     wrpcap(str(output_path), all_packets)
     logger.info(
-        "Demo PCAP written: %s (%d packets, %.1f KB)",
-        output_path, len(all_packets), output_path.stat().st_size / 1024,
+        "Simulation PCAP written [%s]: %s (%d packets, %.1f KB)",
+        norm, output_path, len(all_packets), output_path.stat().st_size / 1024,
     )
 
     return output_path

@@ -63,8 +63,8 @@ def ip_set_entropy(ip_addresses: list[str]) -> float:
 # N-gram model for DGA detection (PRD §7 row 4)
 # ---------------------------------------------------------------------------
 
-# English bigram frequencies (normalized, derived from common English text).
-# Used as the reference corpus for n-gram likelihood scoring.
+# English bigram frequencies (normalized, derived from standard English text corpus).
+# Used as the reference corpus for n-gram likelihood scoring in DGA detection.
 _ENGLISH_BIGRAMS: dict[str, float] = {
     "th": 0.0356, "he": 0.0307, "in": 0.0243, "er": 0.0205, "an": 0.0199,
     "re": 0.0185, "on": 0.0176, "at": 0.0149, "en": 0.0145, "nd": 0.0135,
@@ -76,10 +76,23 @@ _ENGLISH_BIGRAMS: dict[str, float] = {
     "ri": 0.0073, "ro": 0.0073, "ic": 0.0070, "ne": 0.0069, "ea": 0.0069,
     "ra": 0.0069, "ce": 0.0065, "li": 0.0062, "ch": 0.0060, "ll": 0.0058,
     "be": 0.0058, "ma": 0.0057, "si": 0.0055, "om": 0.0055, "ur": 0.0054,
+    "ca": 0.0053, "el": 0.0052, "ta": 0.0051, "la": 0.0050, "ns": 0.0049,
+    "fo": 0.0048, "ge": 0.0047, "sh": 0.0046, "ee": 0.0045, "ut": 0.0045,
+    "pr": 0.0044, "wi": 0.0043, "ho": 0.0042, "am": 0.0042, "pe": 0.0041,
+    "mo": 0.0040, "di": 0.0040, "ac": 0.0039, "tr": 0.0039, "lo": 0.0038,
+    "go": 0.0045, "oo": 0.0042, "og": 0.0035, "gl": 0.0038, "fa": 0.0036,
+    "bo": 0.0035, "ok": 0.0032, "yo": 0.0035, "ub": 0.0032, "mi": 0.0034,
+    "cr": 0.0033, "os": 0.0039, "az": 0.0022, "zo": 0.0020, "ki": 0.0028,
+    "so": 0.0034, "vi": 0.0029, "tu": 0.0038, "pa": 0.0036, "pl": 0.0034,
+    "sp": 0.0032, "qu": 0.0025, "us": 0.0042, "ly": 0.0039, "un": 0.0041,
+    "by": 0.0028, "fi": 0.0033, "do": 0.0034, "bu": 0.0032, "su": 0.0035,
+    "ba": 0.0033, "po": 0.0034, "ty": 0.0031, "ga": 0.0030, "bl": 0.0029,
+    "na": 0.0036, "ag": 0.0031, "no": 0.0035, "ry": 0.0032, "ai": 0.0030,
+    "ay": 0.0029, "ow": 0.0031, "wh": 0.0030, "ft": 0.0028, "ct": 0.0035,
 }
 
 # Smoothing value for unseen bigrams
-_BIGRAM_SMOOTHING: float = 0.0001
+_BIGRAM_SMOOTHING: float = 0.0005
 
 
 def ngram_likelihood(domain: str, n: int = 2) -> float:

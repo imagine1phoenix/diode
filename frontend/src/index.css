@@ -105,3 +105,57 @@ body {
 .pulse {
   animation: pulse-glow 2s infinite ease-in-out;
 }
+
+/* Tooltip container */
+.has-tooltip {
+  position: relative;
+}
+.tooltip {
+  visibility: hidden;
+  position: absolute;
+  z-index: 50;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #0f172a;
+  color: #f1f5f9;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 11px;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-in-out;
+}
+.has-tooltip:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Accordion expand animation */
+.accordion-content {
+  animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive grid stacking */
+@media (max-width: 1140px) {
+  .soc-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+

@@ -72,14 +72,19 @@ class C2BeaconingDetector(BaseDetector):
         stats: dict[str, object] = {}
         score = 0.0
 
-        # Need minimum connections for meaningful periodicity analysis
-        if flow_features.packet_count < config.C2_MIN_CONNECTIONS:
+        pair = (flow_features.src_ip, flow_features.dst_ip)
+        pair_times = window_features.host_pair_connection_times.get(pair, [])
+
+        # Need either sufficient intra-flow packets OR multiple host-pair connection sessions
+        has_intra_packets = flow_features.packet_count >= config.C2_MIN_CONNECTIONS
+        has_pair_sessions = len(pair_times) >= 3
+
+        if not has_intra_packets and not has_pair_sessions:
             return []
 
-        # --- Feature 1: Periodicity score (FFT/autocorrelation) ---
-        if flow_features.periodicity_score_value > config.C2_PERIODICITY_THRESHOLD:
+        # --- Feature 1: Intra-Flow Periodicity score (FFT/autocorrelation) ---
+        if has_intra_packets and flow_features.periodicity_score_value > config.C2_PERIODICITY_THRESHOLD:
             triggered.append("periodicity_score")
-            # Strong periodicity → higher score
             excess = (
                 flow_features.periodicity_score_value - config.C2_PERIODICITY_THRESHOLD
             )
@@ -89,6 +94,7 @@ class C2BeaconingDetector(BaseDetector):
                 flow_features.periodicity_score_value, 4
             )
             stats["periodicity_threshold"] = config.C2_PERIODICITY_THRESHOLD
+
 
         # --- Feature 2: Inter-arrival time variance ---
         # Low variance indicates regular timing → beaconing
@@ -103,7 +109,24 @@ class C2BeaconingDetector(BaseDetector):
             )
             stats["jitter_threshold"] = config.C2_LOW_JITTER_THRESHOLD
 
-        # --- Feature 3: Destination set size (window-level) ---
+        # --- Feature 3: Host-Pair Inter-Connection Time Series (PRD §7 row 3) ---
+        # Evaluates recurring connections between (src_ip, dst_ip) across ephemeral ports
+        pair = (flow_features.src_ip, flow_features.dst_ip)
+        pair_times = window_features.host_pair_connection_times.get(pair, [])
+        if len(pair_times) >= 3:
+            sorted_times = sorted(pair_times)
+            from src.features.periodicity import coefficient_of_variation, periodicity_score
+            pair_cv = coefficient_of_variation(sorted_times)
+            pair_periodicity = periodicity_score(sorted_times)
+
+            if pair_cv < config.C2_LOW_JITTER_THRESHOLD or pair_periodicity > config.C2_PERIODICITY_THRESHOLD:
+                triggered.append("host_pair_periodic_connections")
+                score += 0.45
+                stats["host_pair_connections"] = len(sorted_times)
+                stats["host_pair_cv"] = round(pair_cv, 4)
+                stats["host_pair_periodicity"] = round(pair_periodicity, 4)
+
+        # --- Feature 4: Destination set size (window-level) ---
         # C2 typically contacts very few unique servers
         src_ip = flow_features.src_ip
         destinations = window_features.destinations_per_src.get(src_ip, set())
@@ -117,7 +140,7 @@ class C2BeaconingDetector(BaseDetector):
                 stats["destination_set_size"] = dest_count
 
         # --- Emit detection if features triggered ---
-        if not triggered:
+        if not triggered or score < 0.40:
             return []
 
         confidence = min(score, 1.0)

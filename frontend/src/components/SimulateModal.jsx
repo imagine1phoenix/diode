@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Zap, Radio, Globe, ShieldAlert, Cpu, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, Zap, Radio, Globe, ShieldAlert, Cpu, CheckCircle2, Loader2, ArrowUpRight, Play } from 'lucide-react';
+import { THREAT_CONFIG } from './ThreatDonutChart';
 
 export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulating }) {
   const [selectedThreat, setSelectedThreat] = useState('all');
@@ -10,50 +11,58 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
   const scenarios = [
     {
       id: 'all',
-      name: 'Combined Attack Suite (PRD §4 Complete)',
-      description: 'Generates realistic benign traffic alongside SYN flood, port sweep, C2 beaconing, and DGA DNS queries.',
+      name: 'Combined Threat Scenario Suite',
+      description: 'Replays benign baseline traffic mixed with SYN flood, port sweep, C2 beacon, DGA DNS, and exfiltration.',
       icon: Zap,
-      color: '#ef4444',
-      badge: 'Full Demo',
+      color: '#6366f1',
+      badge: 'Full Demo Suite',
     },
     {
       id: 'ddos',
-      name: 'Volumetric SYN Flood & UDP Amp',
-      description: 'High packet-rate unidirectional burst testing arrival rate and source IP entropy detection.',
+      name: 'Volumetric SYN & UDP Flooding',
+      description: 'High packet-rate burst testing arrival rate velocity and source IP entropy detection.',
       icon: ShieldAlert,
-      color: '#f97316',
-      badge: 'Tier 1',
+      color: THREAT_CONFIG.ddos.color,
+      badge: 'Network Layer',
     },
     {
       id: 'recon_scan',
       name: 'Reconnaissance & Port Scanning',
-      description: 'Probes high-cardinality destination ports and horizontal host sweeps.',
+      description: 'Probes high-cardinality destination ports and horizontal subnet sweeps.',
       icon: Cpu,
-      color: '#eab308',
-      badge: 'Tier 1',
+      color: THREAT_CONFIG.recon_scan.color,
+      badge: 'Service Mapping',
     },
     {
       id: 'c2_beaconing',
       name: 'Botnet C2 Periodic Beaconing',
-      description: 'Low-jitter periodic heartbeats evaluated via FFT spectral analysis and autocorrelation.',
+      description: 'Low-jitter periodic heartbeats evaluated via FFT spectral analysis and host-pair time series.',
       icon: Radio,
-      color: '#a855f7',
-      badge: 'Tier 1',
+      color: THREAT_CONFIG.c2_beaconing.color,
+      badge: 'Host Heartbeat',
     },
     {
       id: 'dga_dns',
       name: 'DGA Domains & DNS Tunnelling',
-      description: 'Random domain queries scored with English bigram models and character Shannon entropy.',
+      description: 'Random domain queries scored with trained ML Random Forest and Shannon character entropy.',
       icon: Globe,
-      color: '#06b6d4',
-      badge: 'Tier 1',
+      color: THREAT_CONFIG.dga_dns.color,
+      badge: 'AI / ML Classified',
+    },
+    {
+      id: 'exfiltration',
+      name: 'Data Exfiltration (Egress Spike)',
+      description: 'Heavy outbound payload bursts exceeding physical diode egress baseline limits.',
+      icon: ArrowUpRight,
+      color: THREAT_CONFIG.exfiltration.color,
+      badge: 'Egress Saturation',
     },
   ];
 
   const handleRun = async () => {
     setResult(null);
     await onSimulate(selectedThreat);
-    setResult('Traffic generated and processed through pipeline!');
+    setResult('Simulation traffic ingested and classified by AI pipeline!');
     setTimeout(() => {
       onClose();
       setResult(null);
@@ -67,7 +76,7 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      backgroundColor: 'rgba(0, 0, 0, 0.78)',
       backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
@@ -82,10 +91,10 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
         style={{
           width: '100%',
           maxWidth: '620px',
-          padding: '28px',
+          padding: '26px',
           background: '#0d1322',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
+          border: '1px solid rgba(99, 102, 241, 0.3)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.85)',
           position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -94,8 +103,8 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
           onClick={onClose}
           style={{
             position: 'absolute',
-            top: '20px',
-            right: '20px',
+            top: '18px',
+            right: '18px',
             background: 'transparent',
             border: 'none',
             color: 'var(--text-muted)',
@@ -105,30 +114,30 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
           <X size={20} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
           <div style={{
             width: '40px',
             height: '40px',
             borderRadius: 'var(--radius-md)',
-            background: 'linear-gradient(135deg, #ef4444, #f97316)',
+            background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <Zap size={22} color="#ffffff" />
+            <Zap size={20} color="#ffffff" />
           </div>
           <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>
-              Inject Simulated Cyber Attack
+            <h2 style={{ fontSize: '17px', fontWeight: '700', color: '#ffffff' }}>
+              Threat Scenario Simulator
             </h2>
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Simulate traffic across the read-only diode tap to demonstrate live detection
+              Safe offline replay across the one-way diode tap to demonstrate live AI detection
             </div>
           </div>
         </div>
 
         {/* Scenario selection list */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '20px 0' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '18px 0' }}>
           {scenarios.map((sc) => {
             const Icon = sc.icon;
             const isSelected = selectedThreat === sc.id;
@@ -139,8 +148,8 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '14px',
-                  padding: '12px 16px',
+                  gap: '12px',
+                  padding: '10px 14px',
                   borderRadius: 'var(--radius-md)',
                   background: isSelected ? 'rgba(99, 102, 241, 0.15)' : 'rgba(15, 23, 42, 0.6)',
                   border: `1px solid ${isSelected ? 'var(--accent-indigo)' : 'var(--bg-card-border)'}`,
@@ -149,15 +158,16 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
                 }}
               >
                 <div style={{
-                  width: '32px',
-                  height: '32px',
+                  width: '30px',
+                  height: '30px',
                   borderRadius: 'var(--radius-sm)',
-                  background: `rgba(${sc.color === '#ef4444' ? '239, 68, 68' : '6, 182, 212'}, 0.15)`,
+                  background: 'rgba(255, 255, 255, 0.08)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  flexShrink: 0,
                 }}>
-                  <Icon size={18} color={sc.color} />
+                  <Icon size={16} color={sc.color} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -165,11 +175,12 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
                       {sc.name}
                     </span>
                     <span style={{
-                      fontSize: '10px',
+                      fontSize: '9px',
                       padding: '1px 6px',
                       borderRadius: 'var(--radius-full)',
                       background: 'rgba(255, 255, 255, 0.1)',
                       color: 'var(--text-secondary)',
+                      fontWeight: '600',
                     }}>
                       {sc.badge}
                     </span>
@@ -197,27 +208,27 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
             alignItems: 'center',
             gap: '8px',
             color: 'var(--accent-emerald)',
-            fontSize: '13px',
+            fontSize: '12px',
             fontWeight: '600',
-            marginBottom: '14px',
+            marginBottom: '12px',
           }}>
-            <CheckCircle2 size={16} />
+            <CheckCircle2 size={15} />
             {result}
           </div>
         )}
 
         {/* Action Footer */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
           <button
             onClick={onClose}
             style={{
-              padding: '9px 18px',
+              padding: '8px 16px',
               borderRadius: 'var(--radius-md)',
               background: 'transparent',
               border: '1px solid var(--bg-card-border)',
               color: 'var(--text-secondary)',
               cursor: 'pointer',
-              fontSize: '13px',
+              fontSize: '12px',
             }}
           >
             Cancel
@@ -228,20 +239,21 @@ export default function SimulateModal({ isOpen, onClose, onSimulate, isSimulatin
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '9px 20px',
+              gap: '6px',
+              padding: '8px 18px',
               borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, #ef4444, #f97316)',
+              background: 'linear-gradient(135deg, #4f46e5, #06b6d4)',
               border: 'none',
               color: '#ffffff',
               fontWeight: '600',
               cursor: isSimulating ? 'not-allowed' : 'pointer',
-              fontSize: '13px',
+              fontSize: '12px',
               opacity: isSimulating ? 0.7 : 1,
+              boxShadow: '0 0 16px rgba(79, 70, 229, 0.35)',
             }}
           >
-            {isSimulating ? <Loader2 size={16} className="pulse" /> : <Zap size={16} />}
-            {isSimulating ? 'Ingesting Simulated Traffic...' : 'Execute Simulation'}
+            {isSimulating ? <Loader2 size={15} className="pulse" /> : <Play size={14} />}
+            {isSimulating ? 'Simulating Traffic Ingest...' : 'Run Threat Simulation'}
           </button>
         </div>
       </div>

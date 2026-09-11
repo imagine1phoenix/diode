@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertOctagon, Flame, ShieldAlert, Cpu } from 'lucide-react';
+import { AlertOctagon, Flame, ShieldAlert, Layers } from 'lucide-react';
 
 export default function StatsCards({ stats }) {
   const total = stats.total_alerts || 0;
@@ -8,52 +8,56 @@ export default function StatsCards({ stats }) {
   const medium = stats.by_severity?.medium || 0;
   const low = stats.by_severity?.low || 0;
 
+  const activeThreatClasses = Object.keys(stats.by_threat_class || {}).filter(
+    (k) => (stats.by_threat_class[k] || 0) > 0
+  ).length;
+
   const cards = [
     {
-      title: 'Total Alerts',
+      title: 'Total Detected Threats',
       value: total.toLocaleString(),
-      subtext: 'Ingested across sliding windows',
+      subtext: 'Normalized security events',
       icon: ShieldAlert,
       color: 'var(--accent-cyan)',
-      bg: 'rgba(6, 182, 212, 0.1)',
-      border: 'rgba(6, 182, 212, 0.25)',
+      bg: 'rgba(6, 182, 212, 0.08)',
+      border: 'rgba(6, 182, 212, 0.2)',
     },
     {
-      title: 'Critical Threats',
+      title: 'Critical Incidents',
       value: critical.toLocaleString(),
-      subtext: 'Requires immediate SOC escalation',
+      subtext: 'Multi-feature confirmed',
       icon: AlertOctagon,
       color: 'var(--sev-critical)',
       bg: 'var(--sev-critical-bg)',
-      border: 'rgba(239, 68, 68, 0.35)',
+      border: 'rgba(239, 68, 68, 0.3)',
       isCritical: critical > 0,
     },
     {
-      title: 'High Severity',
-      value: high.toLocaleString(),
-      subtext: 'Recon sweeps & high-vol DDoS',
+      title: 'High & Medium Alerts',
+      value: (high + medium).toLocaleString(),
+      subtext: `High: ${high} • Medium: ${medium}`,
       icon: Flame,
       color: 'var(--sev-high)',
       bg: 'var(--sev-high-bg)',
-      border: 'rgba(249, 115, 22, 0.25)',
+      border: 'rgba(249, 115, 22, 0.2)',
     },
     {
-      title: 'Medium & Low',
-      value: (medium + low).toLocaleString(),
-      subtext: `Med: ${medium} • Low: ${low}`,
-      icon: Cpu,
+      title: 'Active Threat Vectors',
+      value: `${activeThreatClasses} / 6`,
+      subtext: 'Classes detected in stream',
+      icon: Layers,
       color: 'var(--accent-indigo)',
-      bg: 'rgba(99, 102, 241, 0.1)',
-      border: 'rgba(99, 102, 241, 0.25)',
+      bg: 'rgba(99, 102, 241, 0.08)',
+      border: 'rgba(99, 102, 241, 0.2)',
     },
   ];
 
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-      gap: '20px',
-      margin: '24px 0',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+      gap: '14px',
+      marginBottom: '18px',
     }}>
       {cards.map((card, idx) => {
         const Icon = card.icon;
@@ -62,53 +66,58 @@ export default function StatsCards({ stats }) {
             key={idx}
             className="glass-panel"
             style={{
-              padding: '20px 24px',
+              padding: '14px 18px',
               border: `1px solid ${card.border}`,
-              background: `linear-gradient(180deg, ${card.bg} 0%, rgba(15, 23, 42, 0.75) 100%)`,
+              background: `linear-gradient(180deg, ${card.bg} 0%, rgba(15, 23, 42, 0.7) 100%)`,
               position: 'relative',
-              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
             }}
           >
             {card.isCritical && (
               <span style={{
                 position: 'absolute',
-                top: '12px',
-                right: '12px',
-                width: '8px',
-                height: '8px',
+                top: '10px',
+                right: '10px',
+                width: '7px',
+                height: '7px',
                 borderRadius: '50%',
                 background: 'var(--sev-critical)',
-                boxShadow: '0 0 10px var(--sev-critical)',
+                boxShadow: '0 0 8px var(--sev-critical)',
               }} className="pulse" />
             )}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '3px' }}>
                 {card.title}
-              </span>
+              </div>
               <div style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: 'var(--radius-sm)',
-                background: card.bg,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                fontSize: '22px',
+                fontWeight: '800',
+                color: '#ffffff',
+                fontFamily: 'var(--font-mono)',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.1,
               }}>
-                <Icon size={20} color={card.color} />
+                {card.value}
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                {card.subtext}
               </div>
             </div>
             <div style={{
-              fontSize: '28px',
-              fontWeight: '800',
-              color: '#ffffff',
-              fontFamily: 'var(--font-mono)',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
+              width: '38px',
+              height: '38px',
+              borderRadius: 'var(--radius-md)',
+              background: card.bg,
+              border: `1px solid ${card.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}>
-              {card.value}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
-              {card.subtext}
+              <Icon size={19} color={card.color} />
             </div>
           </div>
         );
