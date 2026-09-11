@@ -1,4 +1,4 @@
-# SIH — AI-Based Detection of Cyber Threats in Unidirectional IP Traffic
+# DIODE — AI-Based Detection of Cyber Threats in Unidirectional IP Traffic
 
 > **A high-performance streaming pipeline that ingests simulated one-directional IP traffic across a data diode tap, extracts sliding-window flow features, classifies against 6 cyber threat categories with explainable ML, and streams real-time alerts to an enterprise React SOC dashboard.**
 
