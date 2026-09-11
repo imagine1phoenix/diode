@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { getApiUrl, getWsUrl } from '../api';
 
 export function useAlertStream() {
   const [alerts, setAlerts] = useState([]);
@@ -20,9 +21,9 @@ export function useAlertStream() {
     try {
       const timestamp = Date.now();
       const [statsRes, alertsRes, timelineRes] = await Promise.all([
-        fetch(`/api/stats?_t=${timestamp}`),
-        fetch(`/api/alerts?limit=100&_t=${timestamp}`),
-        fetch(`/api/timeline?minutes=30&_t=${timestamp}`),
+        fetch(getApiUrl(`/api/stats?_t=${timestamp}`)),
+        fetch(getApiUrl(`/api/alerts?limit=100&_t=${timestamp}`)),
+        fetch(getApiUrl(`/api/timeline?minutes=30&_t=${timestamp}`)),
       ]);
 
       if (statsRes.ok) {
@@ -69,9 +70,7 @@ export function useAlertStream() {
     let unmounted = false;
 
     function connectWs() {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const wsUrl = `${protocol}//${host}/ws`;
+      const wsUrl = getWsUrl('/ws');
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -144,7 +143,7 @@ export function useAlertStream() {
   const simulateAttack = async (threatClass = 'all') => {
     setIsSimulating(true);
     try {
-      const res = await fetch(`/api/simulate?threat_class=${threatClass}`, {
+      const res = await fetch(getApiUrl(`/api/simulate?threat_class=${threatClass}`), {
         method: 'POST',
       });
       if (res.ok) {

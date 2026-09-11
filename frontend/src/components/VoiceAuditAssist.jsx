@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Mic, MicOff, Volume2, VolumeX, Sparkles, X, ShieldAlert, CheckCircle2, Radio, Send, Play } from 'lucide-react';
+import { getApiUrl } from '../api';
 
 export default function VoiceAuditAssist({ onInspectAlert, topAlert }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,7 +39,7 @@ export default function VoiceAuditAssist({ onInspectAlert, topAlert }) {
       setIsProcessing(true);
 
       try {
-        const res = await fetch('/api/copilot/chat', {
+        const res = await fetch(getApiUrl('/api/copilot/chat'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

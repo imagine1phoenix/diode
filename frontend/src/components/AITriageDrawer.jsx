@@ -4,6 +4,7 @@ import {
   Cpu, Lock, ArrowRight, Activity, AlertTriangle, Send, MessageSquare,
   FileText, Download, RefreshCw, Zap, CornerDownLeft
 } from 'lucide-react';
+import { getApiUrl } from '../api';
 
 export default function AITriageDrawer({ alert, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('triage'); // 'triage' | 'chat'
@@ -38,7 +39,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
       }
     ]);
 
-    fetch('/api/triage', {
+    fetch(getApiUrl('/api/triage'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(alert),
@@ -146,7 +147,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
         content: m.content,
       }));
 
-      const res = await fetch('/api/copilot/chat', {
+      const res = await fetch(getApiUrl('/api/copilot/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

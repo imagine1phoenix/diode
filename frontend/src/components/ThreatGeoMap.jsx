@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Globe2, Shield, AlertTriangle, Radio, Activity, RefreshCw, Zap, Crosshair, Filter, Flame } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { geoNaturalEarth1, geoPath, geoGraticule10 } from 'd3-geo';
 import { feature } from 'topojson-client';
+import {
+  Globe2, Shield, AlertTriangle, Crosshair, ZoomIn, ZoomOut,
+  RotateCcw, Radio, Activity, Eye, Zap, Layers, RefreshCw, Flame, Filter
+} from 'lucide-react';
+import { getApiUrl } from '../api';
 import worldData from 'world-atlas/countries-110m.json';
 
 // Pre-compute geographical features once to maintain 60 FPS
@@ -27,7 +31,7 @@ export default function ThreatGeoMap({ alerts = [] }) {
   // Fetch threat geo data from backend API
   const fetchGeo = () => {
     setLoading(true);
-    fetch('/api/geoip/threats?limit=250')
+    fetch(getApiUrl('/api/geoip/threats?limit=250'))
       .then((res) => res.json())
       .then((data) => {
         setGeoData(Array.isArray(data) ? data : []);
