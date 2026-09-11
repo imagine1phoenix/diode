@@ -8,6 +8,7 @@ import EvidenceModal from './components/EvidenceModal';
 import SimulateModal from './components/SimulateModal';
 import AITriageDrawer from './components/AITriageDrawer';
 import PipelineInspectorModal from './components/PipelineInspectorModal';
+import NotificationModal from './components/NotificationModal';
 import { useAlertStream } from './hooks/useAlertStream';
 import { List, Globe2, Bot, Activity, Zap, Sparkles, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 
@@ -28,6 +29,7 @@ export default function App() {
   const [triageAlert, setTriageAlert] = useState(null);
   const [isSimulateOpen, setIsSimulateOpen] = useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [inspectorScenario, setInspectorScenario] = useState('all');
   const [inspectorResult, setInspectorResult] = useState(null);
   const [inspectorStage, setInspectorStage] = useState(1);
@@ -98,6 +100,7 @@ export default function App() {
         onOpenSimulate={() => setIsSimulateOpen(true)}
         onOpenInspector={() => handleOpenInspectorWithScenario('all')}
         onOpenCopilot={handleOpenCopilot}
+        onOpenNotifications={() => setIsNotificationOpen(true)}
         onRefresh={refresh}
         isRefreshing={isRefreshing}
         isSimulating={isSimulating}
@@ -492,6 +495,12 @@ export default function App() {
         onRunSimulation={simulateAttack}
         onInspectAlert={(alert) => setSelectedAlert(alert)}
         initialStage={inspectorStage}
+      />
+
+      {/* Outbound Real Alert Channels Configuration Modal */}
+      <NotificationModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
       />
     </div>
   );

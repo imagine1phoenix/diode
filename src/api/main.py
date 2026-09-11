@@ -37,17 +37,24 @@ _ws_clients: set[WebSocket] = set()
 
 
 async def _broadcast_alert(alert: Alert) -> None:
-    """Broadcast a new alert to all connected WebSocket clients."""
-    if not _ws_clients:
-        return
-    data = alert.model_dump_json()
-    disconnected: set[WebSocket] = set()
-    for ws in _ws_clients:
-        try:
-            await ws.send_text(data)
-        except Exception:
-            disconnected.add(ws)
-    _ws_clients.difference_update(disconnected)
+    """Broadcast a new alert to connected WebSocket clients and external notification channels."""
+    # 1. WebSocket live broadcast
+    if _ws_clients:
+        data = alert.model_dump_json()
+        disconnected: set[WebSocket] = set()
+        for ws in _ws_clients:
+            try:
+                await ws.send_text(data)
+            except Exception:
+                disconnected.add(ws)
+        _ws_clients.difference_update(disconnected)
+
+    # 2. External operational dispatch (Webhooks, Discord, Slack, Telegram)
+    try:
+        from src.alert.dispatcher import get_dispatcher
+        await get_dispatcher().dispatch_async(alert)
+    except Exception as e:
+        logger.error("External alert dispatch failed: %s", e)
 
 
 @asynccontextmanager
@@ -328,6 +335,65 @@ async def geoip_threats(limit: int = Query(200, ge=1, le=1000)) -> list[dict[str
     assert _store is not None
     recent_alerts = _store.get_recent(limit=limit)
     return aggregate_threat_geo(recent_alerts)
+
+
+# ---------------------------------------------------------------------------
+# External Notification Channel Endpoints
+# ---------------------------------------------------------------------------
+
+
+class NotificationConfigUpdate(BaseModel):
+    webhook_url: str | None = None
+    telegram_bot_token: str | None = None
+    telegram_chat_id: str | None = None
+    min_severity: str | None = None
+    cooldown_seconds: float | None = None
+
+
+class TestNotificationRequest(BaseModel):
+    channel: str = "all"
+    webhook_url: str | None = None
+    telegram_bot_token: str | None = None
+    telegram_chat_id: str | None = None
+
+
+@app.get("/api/notifications/config")
+async def get_notification_config() -> dict[str, Any]:
+    """Get active external alert dispatch configuration (tokens masked)."""
+    from src.alert.dispatcher import get_dispatcher
+    return get_dispatcher().get_config()
+
+
+@app.post("/api/notifications/config")
+async def update_notification_config(req: NotificationConfigUpdate) -> dict[str, Any]:
+    """Update external alert notification channels at runtime."""
+    from src.alert.dispatcher import get_dispatcher
+    return get_dispatcher().update_config(
+        webhook_url=req.webhook_url,
+        telegram_bot_token=req.telegram_bot_token,
+        telegram_chat_id=req.telegram_chat_id,
+        min_severity=req.min_severity,
+        cooldown_seconds=req.cooldown_seconds,
+    )
+
+
+@app.post("/api/notifications/test")
+async def test_notification_dispatch(req: TestNotificationRequest) -> dict[str, Any]:
+    """Trigger a live test alert dispatch to verify Webhook/Telegram connectivity."""
+    from src.alert.dispatcher import get_dispatcher
+    return await get_dispatcher().test_dispatch_async(
+        channel=req.channel,
+        webhook_url=req.webhook_url,
+        telegram_bot_token=req.telegram_bot_token,
+        telegram_chat_id=req.telegram_chat_id,
+    )
+
+
+@app.get("/api/notifications/logs")
+async def get_notification_logs(limit: int = Query(30, ge=1, le=100)) -> list[dict[str, Any]]:
+    """Get audit logs of recent external alert notification deliveries."""
+    from src.alert.dispatcher import get_dispatcher
+    return get_dispatcher().get_logs(limit=limit)
 
 
 # ---------------------------------------------------------------------------

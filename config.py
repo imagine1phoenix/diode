@@ -87,3 +87,12 @@ EXFIL_DURATION_THRESHOLD: float = float(os.getenv("SIH_EXFIL_DURATION", "60.0"))
 # ---------------------------------------------------------------------------
 ALERT_COOLDOWN_SECONDS: float = float(os.getenv("SIH_ALERT_COOLDOWN", "10.0"))
 
+# ---------------------------------------------------------------------------
+# External Alert Notifications (Webhooks, Discord, Slack, Telegram)
+# ---------------------------------------------------------------------------
+ALERT_WEBHOOK_URL: str = os.getenv("ALERT_WEBHOOK_URL", "")
+TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID: str = os.getenv("TELEGRAM_CHAT_ID", "")
+ALERT_MIN_SEVERITY: str = os.getenv("ALERT_MIN_SEVERITY", "high").lower()
+ALERT_DISPATCH_COOLDOWN_SECONDS: float = float(os.getenv("ALERT_DISPATCH_COOLDOWN", "60.0"))
+

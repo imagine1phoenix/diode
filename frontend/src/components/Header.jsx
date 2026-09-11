@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Sparkles } from 'lucide-react';
+import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Sparkles, Bell } from 'lucide-react';
 
 export default function Header({
   connected,
@@ -8,6 +8,7 @@ export default function Header({
   onOpenSimulate,
   onOpenInspector,
   onOpenCopilot,
+  onOpenNotifications,
   onRefresh,
   isRefreshing = false,
   isSimulating = false,
@@ -222,6 +223,31 @@ export default function Header({
         >
           <Activity size={13} color="#2563EB" />
           <span>Pipeline Detail</span>
+        </button>
+
+        {/* Alert Channels (Webhooks / Telegram / Slack) Button */}
+        <button
+          onClick={onOpenNotifications}
+          title="Configure Outbound Alert Channels (Discord, Slack, Telegram, Webhook)"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '7px 12px',
+            borderRadius: '8px',
+            background: '#F1F5F9',
+            border: '1px solid #CBD5E1',
+            color: '#1E293B',
+            fontWeight: '600',
+            fontSize: '12px',
+            cursor: 'pointer',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#E2E8F0')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+        >
+          <Bell size={13} color="#EA580C" />
+          <span>Alert Channels</span>
         </button>
 
         {/* Simulate Demo Attack Button */}
