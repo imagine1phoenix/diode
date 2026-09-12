@@ -7,7 +7,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.135+-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18%20%2B%20Vite-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.md)
-[![Tests](https://img.shields.io/badge/Tests-Passing%20(54%2F54)-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-Passing%20(60%2F60)-brightgreen.svg)]()
 [![Travis-CI](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/imagine1phoenix/diode/actions)
 
 ---
@@ -330,6 +330,19 @@ curl -s -X POST "http://127.0.0.1:8000/api/notifications/test" | jq .
 
 # Inspect outbound delivery audit history (last 100 attempts)
 curl -s "http://127.0.0.1:8000/api/notifications/logs" | jq .
+```
+
+##### Enclave State Management & Reset
+```bash
+# Reset enclave to clean 6-vector baseline (wipes demo attack bursts, restores clean baseline)
+curl -s -X POST "http://127.0.0.1:8000/api/reset" \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "baseline", "clear_notifications": true}' | jq .
+
+# Wipe enclave to clean slate (0 alerts, 0 KPIs, completely fresh state for live demo)
+curl -s -X POST "http://127.0.0.1:8000/api/reset" \
+  -H "Content-Type: application/json" \
+  -d '{"mode": "empty", "clear_notifications": true}' | jq .
 ```
 
 #### 3. Real-Time WebSocket Streaming

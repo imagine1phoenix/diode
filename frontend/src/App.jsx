@@ -9,6 +9,7 @@ import SimulateModal from './components/SimulateModal';
 import AITriageDrawer from './components/AITriageDrawer';
 import PipelineInspectorModal from './components/PipelineInspectorModal';
 import NotificationModal from './components/NotificationModal';
+import ResetModal from './components/ResetModal';
 import { useAlertStream } from './hooks/useAlertStream';
 import { useTheme } from './hooks/useTheme';
 import { List, Globe2, Bot, Activity, Zap, Sparkles, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
@@ -22,7 +23,9 @@ export default function App() {
     connected,
     isSimulating,
     isRefreshing,
+    isResetting,
     simulateAttack,
+    resetEnclave,
     lastSimulationResult,
     refresh,
   } = useAlertStream();
@@ -30,6 +33,7 @@ export default function App() {
   const [selectedAlert, setSelectedAlert] = useState(null);
   const [triageAlert, setTriageAlert] = useState(null);
   const [isSimulateOpen, setIsSimulateOpen] = useState(false);
+  const [isResetOpen, setIsResetOpen] = useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [inspectorScenario, setInspectorScenario] = useState('all');
@@ -100,6 +104,7 @@ export default function App() {
         throughput={stats.throughput}
         totalAlerts={stats.total_alerts}
         onOpenSimulate={() => setIsSimulateOpen(true)}
+        onOpenReset={() => setIsResetOpen(true)}
         onOpenInspector={() => handleOpenInspectorWithScenario('all')}
         onOpenCopilot={handleOpenCopilot}
         onOpenNotifications={() => setIsNotificationOpen(true)}
@@ -505,6 +510,14 @@ export default function App() {
       <NotificationModal
         isOpen={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
+      />
+
+      {/* Enclave Reset Modal */}
+      <ResetModal
+        isOpen={isResetOpen}
+        onClose={() => setIsResetOpen(false)}
+        onReset={resetEnclave}
+        isResetting={isResetting}
       />
     </div>
   );

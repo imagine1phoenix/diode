@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 _store: AlertStore | None = None
 _pipeline: Pipeline | None = None
 _ws_clients: set[WebSocket] = set()
+_is_empty_mode_active: bool = False
 
 
 async def _broadcast_alert(alert: Alert) -> None:
@@ -147,7 +148,7 @@ async def get_alerts(
     if severity:
         return _store.get_by_severity(severity, limit)
     alerts = _store.get_recent(limit)
-    if len(alerts) < 6 and not threat_class and not severity:
+    if len(alerts) < 6 and not threat_class and not severity and not _is_empty_mode_active:
         try:
             from traffic.generators.generate_traffic import generate_demo_pcap
             pcap_path = generate_demo_pcap(scenario="all")
@@ -227,6 +228,8 @@ async def simulate_traffic(
     to connected WebSocket clients and updating radar charts dynamically.
     """
     assert _pipeline is not None
+    global _is_empty_mode_active
+    _is_empty_mode_active = False
     from traffic.generators.generate_traffic import generate_demo_pcap
 
     logger.info("Triggering on-demand traffic simulation (threat_class=%s)", threat_class)
@@ -242,6 +245,76 @@ async def simulate_traffic(
         "alerts_generated": len(alerts),
         "alerts": alert_dicts[:15],
         "throughput": _pipeline.throughput.report(),
+    }
+
+
+class ResetEnclaveRequest(BaseModel):
+    mode: str = "baseline"  # "baseline" (clean 6-vector state) or "empty" (0 alerts clean slate)
+    clear_notifications: bool = True
+
+
+@app.post("/api/reset")
+async def reset_enclave(req: ResetEnclaveRequest | None = None) -> dict[str, Any]:
+    """
+    Reset enclave telemetry, SQLite database, and pipeline throughput.
+
+    Modes:
+    - baseline: Wipes attack noise, clears throughput, and re-seeds clean multi-vector baseline (6 threats).
+    - empty: Completely purges all alerts (0 alerts, clean slate for pristine live demonstration).
+    """
+    global _is_empty_mode_active
+    if req is None:
+        req = ResetEnclaveRequest(mode="baseline", clear_notifications=True)
+
+    assert _store is not None
+    assert _pipeline is not None
+
+    mode = req.mode.lower().strip() if req.mode else "baseline"
+    deleted_count = _store.clear()
+    _pipeline.reset()
+
+    if req.clear_notifications:
+        from src.alert.dispatcher import get_dispatcher
+        get_dispatcher().clear_logs()
+
+    if mode == "empty":
+        _is_empty_mode_active = True
+        total_alerts = 0
+    else:
+        _is_empty_mode_active = False
+        # Re-seed clean 6-vector baseline
+        try:
+            from traffic.generators.generate_traffic import generate_demo_pcap
+            pcap_path = generate_demo_pcap(scenario="all")
+            await _pipeline.process_pcap_async(pcap_path)
+        except Exception as e:
+            logger.warning("Baseline re-seed during reset failed: %s", e)
+        total_alerts = len(_store.get_recent(50))
+
+    # Broadcast reset event over WebSocket to synchronize all connected UIs immediately
+    if _ws_clients:
+        reset_payload = json.dumps({
+            "event": "reset",
+            "mode": mode,
+            "total_alerts": total_alerts,
+        })
+        disconnected: set[WebSocket] = set()
+        for ws in _ws_clients:
+            try:
+                await ws.send_text(reset_payload)
+            except Exception:
+                disconnected.add(ws)
+        _ws_clients.difference_update(disconnected)
+
+    logger.info("Enclave reset complete (mode=%s, deleted=%d, total_alerts=%d)", mode, deleted_count, total_alerts)
+
+    return {
+        "status": "success",
+        "mode": mode,
+        "alerts_deleted": deleted_count,
+        "total_alerts": total_alerts,
+        "throughput": _pipeline.throughput.report(),
+        "notifications_cleared": req.clear_notifications,
     }
 
 

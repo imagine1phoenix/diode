@@ -144,6 +144,8 @@ export function useAlertStream() {
   const [connected, setConnected] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const isEmptyModeRef = useRef(false);
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
 
@@ -159,12 +161,21 @@ export function useAlertStream() {
 
       if (statsRes.ok) {
         const data = await statsRes.json();
-        setStats({
-          total_alerts: data.alerts?.total_alerts || SEED_BASELINE_ALERTS.length,
-          by_threat_class: data.alerts?.by_threat_class || {},
-          by_severity: data.alerts?.by_severity || {},
-          throughput: data.pipeline || { flows_per_sec: 3127, alerts_per_sec: 14 },
-        });
+        if (isEmptyModeRef.current && (data.alerts?.total_alerts === 0 || !data.alerts?.total_alerts)) {
+          setStats({
+            total_alerts: 0,
+            by_threat_class: {},
+            by_severity: {},
+            throughput: data.pipeline || { flows_per_sec: 0, alerts_per_sec: 0, flows_processed: 0, alerts_generated: 0 },
+          });
+        } else {
+          setStats({
+            total_alerts: data.alerts?.total_alerts || (isEmptyModeRef.current ? 0 : SEED_BASELINE_ALERTS.length),
+            by_threat_class: data.alerts?.by_threat_class || {},
+            by_severity: data.alerts?.by_severity || {},
+            throughput: data.pipeline || { flows_per_sec: 3127, alerts_per_sec: 14 },
+          });
+        }
       }
 
       if (alertsRes.ok) {
@@ -180,8 +191,8 @@ export function useAlertStream() {
           }
         }
 
-        // If server alerts don't yet cover all 6 categories, augment with baseline seeds
-        if (uniqueAlerts.length < 6) {
+        // If server alerts don't yet cover all 6 categories, augment with baseline seeds (unless user chose clean empty slate)
+        if (uniqueAlerts.length < 6 && !isEmptyModeRef.current) {
           for (const seed of SEED_BASELINE_ALERTS) {
             const hasClass = uniqueAlerts.some((a) => a.threat_class === seed.threat_class);
             if (!hasClass) {
@@ -192,6 +203,10 @@ export function useAlertStream() {
               }
             }
           }
+        }
+
+        if (uniqueAlerts.length > 0) {
+          isEmptyModeRef.current = false;
         }
 
         setAlerts(uniqueAlerts);
@@ -212,19 +227,32 @@ export function useAlertStream() {
             by_threat_class: byThreat,
             by_severity: bySev,
           }));
+        } else if (isEmptyModeRef.current) {
+          setStats((prev) => ({
+            ...prev,
+            total_alerts: 0,
+            by_threat_class: {},
+            by_severity: {},
+          }));
         }
       } else {
-        // Use rich baseline if server endpoint not yet populated
-        setAlerts((prev) => (prev.length >= 6 ? prev : SEED_BASELINE_ALERTS));
+        // Use rich baseline if server endpoint not yet populated and not in empty mode
+        if (!isEmptyModeRef.current) {
+          setAlerts((prev) => (prev.length >= 6 ? prev : SEED_BASELINE_ALERTS));
+        } else {
+          setAlerts([]);
+        }
       }
 
       if (timelineRes.ok) {
         const tl = await timelineRes.json();
-        setTimeline(tl);
+        setTimeline(isEmptyModeRef.current ? [] : tl);
       }
     } catch (err) {
-      console.warn('Failed to fetch initial stats, maintaining enclave baseline:', err);
-      setAlerts((prev) => (prev.length >= 6 ? prev : SEED_BASELINE_ALERTS));
+      console.warn('Failed to fetch initial stats, maintaining enclave state:', err);
+      if (!isEmptyModeRef.current) {
+        setAlerts((prev) => (prev.length >= 6 ? prev : SEED_BASELINE_ALERTS));
+      }
     }
   }, []);
 
@@ -262,7 +290,30 @@ export function useAlertStream() {
 
       ws.onmessage = (event) => {
         try {
-          const alert = JSON.parse(event.data);
+          const msg = JSON.parse(event.data);
+
+          // Handle Enclave Reset event broadcasted to all connected clients
+          if (msg.event === 'reset') {
+            console.log('🔄 Enclave reset received from server (mode:', msg.mode, ')');
+            if (msg.mode === 'empty') {
+              isEmptyModeRef.current = true;
+              setAlerts([]);
+              setStats({
+                total_alerts: 0,
+                by_threat_class: {},
+                by_severity: {},
+                throughput: { flows_per_sec: 0, alerts_per_sec: 0, flows_processed: 0, alerts_generated: 0 },
+              });
+              setTimeline([]);
+            } else {
+              isEmptyModeRef.current = false;
+              fetchStatsAndAlerts();
+            }
+            return;
+          }
+
+          const alert = msg;
+          isEmptyModeRef.current = false;
           const key = alert.alert_id || `${alert.flow_id}-${alert.threat_class}-${alert.timestamp}`;
 
           setAlerts((prev) => {
@@ -328,6 +379,7 @@ export function useAlertStream() {
 
   // Simulate Attack Trigger
   const simulateAttack = async (threatClass = 'all') => {
+    isEmptyModeRef.current = false;
     setIsSimulating(true);
     try {
       const res = await fetch(getApiUrl(`/api/simulate?threat_class=${threatClass}`), {
@@ -347,6 +399,42 @@ export function useAlertStream() {
     return null;
   };
 
+  // Reset Enclave Trigger
+  const resetEnclave = async (mode = 'baseline', clearNotifs = true) => {
+    setIsResetting(true);
+    try {
+      if (mode === 'empty') {
+        isEmptyModeRef.current = true;
+        setAlerts([]);
+        setStats({
+          total_alerts: 0,
+          by_threat_class: {},
+          by_severity: {},
+          throughput: { flows_per_sec: 0, alerts_per_sec: 0, flows_processed: 0, alerts_generated: 0 },
+        });
+        setTimeline([]);
+      }
+      const res = await fetch(getApiUrl('/api/reset'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, clear_notifications: clearNotifs }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (mode !== 'empty') {
+          isEmptyModeRef.current = false;
+          await fetchStatsAndAlerts();
+        }
+        return data;
+      }
+    } catch (err) {
+      console.error('Reset enclave error:', err);
+    } finally {
+      setIsResetting(false);
+    }
+    return null;
+  };
+
   return {
     alerts,
     stats,
@@ -354,7 +442,9 @@ export function useAlertStream() {
     connected,
     isSimulating,
     isRefreshing,
+    isResetting,
     simulateAttack,
+    resetEnclave,
     lastSimulationResult,
     refresh: manualRefresh,
   };

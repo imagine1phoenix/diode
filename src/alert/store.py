@@ -173,6 +173,22 @@ class AlertStore:
         finally:
             conn.close()
 
+    def clear(self) -> int:
+        """
+        Delete all alerts from the database.
+        
+        Returns:
+            Number of alert rows deleted.
+        """
+        conn = self._get_conn()
+        try:
+            cursor = conn.execute("DELETE FROM alerts")
+            deleted = cursor.rowcount
+            conn.commit()
+            return max(0, deleted)
+        finally:
+            conn.close()
+
     def _row_to_dict(self, row: sqlite3.Row) -> dict[str, Any]:
         """Convert a database row to a dictionary matching the Alert schema."""
         d = dict(row)

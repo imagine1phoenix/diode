@@ -1,11 +1,12 @@
 import React from 'react';
-import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Sparkles, Bell, Sun, Moon } from 'lucide-react';
+import { Shield, Activity, Wifi, WifiOff, Zap, ExternalLink, RefreshCw, ArrowRight, Sparkles, Bell, Sun, Moon, RotateCcw } from 'lucide-react';
 
 export default function Header({
   connected,
   throughput,
   totalAlerts,
   onOpenSimulate,
+  onOpenReset,
   onOpenInspector,
   onOpenCopilot,
   onOpenNotifications,
@@ -333,6 +334,42 @@ export default function Header({
             DEMO
           </span>
         </button>
+
+        {/* Reset Enclave Button */}
+        <div className="has-tooltip">
+          <button
+            onClick={onOpenReset}
+            title="Reset Enclave (Clear alerts, reset counters, or restore clean baseline)"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 12px',
+              borderRadius: '8px',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-primary)',
+              fontWeight: '600',
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = '#EF4444';
+              e.currentTarget.style.color = '#EF4444';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
+          >
+            <RotateCcw size={13} color="#EF4444" />
+            <span>Reset Enclave</span>
+          </button>
+          <div className="tooltip">
+            Reset enclave state (wipe alerts, reset throughput counters, or restore clean baseline)
+          </div>
+        </div>
 
         {/* OpenAPI Link */}
         <a

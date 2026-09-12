@@ -58,6 +58,12 @@ class ThroughputCounter:
     def start(self) -> None:
         self.start_time = time.monotonic()
 
+    def reset(self) -> None:
+        """Reset all throughput counters and elapsed timer."""
+        self.start_time = 0.0
+        self.flows_processed = 0
+        self.alerts_generated = 0
+
     def record_flows(self, count: int) -> None:
         self.flows_processed += count
 
@@ -138,6 +144,10 @@ class Pipeline:
     @property
     def throughput(self) -> ThroughputCounter:
         return self._throughput
+
+    def reset(self) -> None:
+        """Reset pipeline throughput counters."""
+        self._throughput.reset()
 
     def _run_detectors(
         self,

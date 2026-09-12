@@ -135,6 +135,12 @@ class AlertDispatcher:
         """Return recent notification delivery audit logs."""
         return list(self._dispatch_logs)[-limit:][::-1]
 
+    def clear_logs(self) -> None:
+        """Clear notification delivery audit logs and anti-flood cooldown cache."""
+        self._dispatch_logs.clear()
+        self._cooldown_cache.clear()
+        logger.info("AlertDispatcher logs and cooldown cache cleared")
+
     # -----------------------------------------------------------------------
     # Gating & Rate Limiting
     # -----------------------------------------------------------------------
