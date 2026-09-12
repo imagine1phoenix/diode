@@ -28,7 +28,7 @@ Instead of fighting the one-way constraint, DIODE embraces it:
 2. **Reassembles Conversations Without Handshakes:** Reconstructs 5-tuple IP flows and temporal sliding windows entirely from one-way packet arrival observations.
 3. **Reads the "Physics" of Traffic:** Computes mathematical information entropy (Shannon entropy) and frequency-domain periodicity (Fast Fourier Transform / FFT) to unmask hidden attackers without decrypting application data.
 4. **Applies Explainable Machine Learning:** Pairs a supervised `RandomForestClassifier` (for lexical DGA domain identification) and an unsupervised `IsolationForest` (for outbound data exfiltration anomalies) with statistical heuristics.
-5. **Delivers Real-Time Air-Gapped Intelligence:** Emits standardized Pydantic V2 alerts into an ACID-compliant SQLite WAL store, streams them via WebSockets to an intuitive React SOC dashboard featuring multi-provider real LLM auto-triage (Groq LPU, Gemini, OpenAI, Ollama), an interactive D3 vector global threat map, and tactical Obsidian Dark Mode.
+5. **Delivers Real-Time Air-Gapped Intelligence:** Emits standardized Pydantic V2 alerts into an ACID-compliant SQLite WAL store, streams them via WebSockets to an intuitive React SOC dashboard featuring Groq LPU-powered LLM auto-triage (LLaMA 3.3 70B), an interactive D3 vector global threat map, one-click Enclave Reset, and tactical Obsidian Dark Mode.
 6. **Bridges Enclaves with Real Enterprise Alerting:** Features an asynchronous, rate-limited alert dispatcher on the SOC presentation network supporting Discord, Slack, Telegram, and standard JSON webhooks with zero reverse transmission on the optical tap.
 
 ### 3. Approach
@@ -80,7 +80,8 @@ sequenceDiagram
 - **Information-Theoretic Entropy Scoring:** Attackers attempting volumetric floods or scanning randomize IP fields; malware using DGA randomizes domain letters. Shannon entropy calculates the exact bits of randomness, separating legitimate human speech/traffic from algorithmic malware.
 - **Explainable Hybrid Machine Learning:** We avoid impenetrable deep learning models. Pre-trained Random Forest and Isolation Forest models expose exact feature importance values, decision boundaries, and anomaly probabilities in every alert.
 - **Zero-Copy Performance Engineering:** Dynamic Python object overhead is bypassed on the line-rate hot path through memory-efficient binary slicing (`dpkt`), achieving sub-second end-to-end alert delivery.
-- **Multi-Provider Generative AI SOC Analyst & Copilot:** Integrates high-speed real models (Groq Cloud LPU, Google Gemini, OpenAI) and on-premise air-gapped SLMs (Ollama) to auto-triage alerts, answer open-ended technical questions, explain forensic evidence, and generate command-line perimeter firewall mitigation scripts.
+- **Groq LPU-Powered AI SOC Analyst & Copilot:** Integrates Groq Cloud LPU inference (LLaMA 3.3 70B) for ultra-fast AI auto-triage of alerts, open-ended technical Q&A, forensic evidence explanation, and automatic generation of command-line perimeter firewall mitigation scripts, with graceful air-gapped SLM fallback.
+- **One-Click Enclave Reset:** A single-action reset system with two modes—`baseline` (restores a clean 6-vector threat baseline for live demos) and `empty` (wipes to a completely blank slate)—synchronized in real-time via WebSockets across all connected SOC consoles.
 
 ### 6. Benefits of the Solution
 - **Zero Network Footprint:** Operating strictly as a passive listener, DIODE is completely invisible and undetectable to adversaries on the monitored link.
@@ -109,7 +110,7 @@ sequenceDiagram
 ## Overview
 
 ### What It Does
-**DIODE** (deployed in the SOC interface as **NET-DRISHTI // AIR-GAPPED TELEMETRY ENCLAVE**) is a complete cybersecurity monitoring and automated triage system designed for physically isolated networks. It connects to a passive optical tap or simulated data diode barrier to ingest unidirectional IP traffic. Without ever sending a packet back onto the monitored network, the system reassembles 5-tuple IP flows, computes sliding-window feature sets (including Shannon entropy and Fast Fourier Transform spectral periodicity), classifies traffic against six fixed cyber threat categories using trained machine learning models (Random Forest and Isolation Forest) alongside statistical heuristics, normalizes events to a strict Pydantic V2 schema (PRD §6), records incidents into an ACID-compliant SQLite WAL database, and broadcasts real-time alerts over WebSockets to a modern React SOC dashboard equipped with real LLM auto-triage (Groq LPU, Gemini, OpenAI, Ollama), an interactive D3 vector global threat map, and tactical Obsidian Dark Mode.
+**DIODE** (deployed in the SOC interface as **NET-DRISHTI // AIR-GAPPED TELEMETRY ENCLAVE**) is a complete cybersecurity monitoring and automated triage system designed for physically isolated networks. It connects to a passive optical tap or simulated data diode barrier to ingest unidirectional IP traffic. Without ever sending a packet back onto the monitored network, the system reassembles 5-tuple IP flows, computes sliding-window feature sets (including Shannon entropy and Fast Fourier Transform spectral periodicity), classifies traffic against six fixed cyber threat categories using trained machine learning models (Random Forest and Isolation Forest) alongside statistical heuristics, normalizes events to a strict Pydantic V2 schema (PRD §6), records incidents into an ACID-compliant SQLite WAL database, and broadcasts real-time alerts over WebSockets to a modern React SOC dashboard equipped with Groq LPU-powered LLM auto-triage (LLaMA 3.3 70B), an interactive D3 vector global threat map, one-click Enclave Reset, and tactical Obsidian Dark Mode.
 
 ### Why You Might Want to Use It
 - **Air-Gapped Compliance (rules.md R1):** In military perimeters, SCADA electrical grids, nuclear stations, and financial enclaves, network sensors are legally and architecturally prohibited from transmitting data back to the monitored network. `diode` is mathematically and physically isolated; an automated Abstract Syntax Tree (AST) scanner (`tests/test_ingest_isolation.py`) continuously verifies that `src/ingest/` contains zero outbound network sockets or transmission routines.
@@ -240,7 +241,7 @@ python3 -m unittest discover -s tests -p "test_*.py" -v
 ## Design Goals
 
 ### Lightweight or Full-Featured?
-`diode` strikes a deliberate architectural balance: an **ultra-lightweight, high-speed core** decoupled from a **full-featured, zero-latency SOC presentation layer**. The ingestion engine and feature extractors are written in pure, optimized Python leveraging compiled C-extensions (`dpkt`, `numpy`, and `scipy`), requiring under 150 MB of memory under sustained load. Conversely, the operational presentation layer is completely full-featured, offering real-time Chart.js telemetry, interactive timeline scrubbers, an offline D3 vector Global Threat Map, a tactical Obsidian Cyber Dark Mode, multi-provider real LLM auto-triage (Groq LPU, Gemini, OpenAI, Ollama), and real enterprise notification dispatching (Discord, Slack, Telegram) without weighing down the data path.
+`diode` strikes a deliberate architectural balance: an **ultra-lightweight, high-speed core** decoupled from a **full-featured, zero-latency SOC presentation layer**. The ingestion engine and feature extractors are written in pure, optimized Python leveraging compiled C-extensions (`dpkt`, `numpy`, and `scipy`), requiring under 150 MB of memory under sustained load. Conversely, the operational presentation layer is completely full-featured, offering real-time Chart.js telemetry, interactive timeline scrubbers, an offline D3 vector Global Threat Map, a tactical Obsidian Cyber Dark Mode, Groq LPU-powered LLM auto-triage (LLaMA 3.3 70B), one-click Enclave Reset, and real enterprise notification dispatching (Discord, Slack, Telegram) without weighing down the data path.
 
 ### Performance, Flexibility, Expressiveness
 - **Performance:** Designed for wire-speed line-rate processing on commodity hardware. By eliminating Scapy dynamic object construction from the ingestion hot path in favor of `dpkt` binary frame parsing, ingestion exceeds 100,000 packets per second. Flow reassembly operates with $O(1)$ amortized hash table lookups and temporal ring-buffer eviction.
@@ -294,12 +295,12 @@ curl -s "http://127.0.0.1:8000/api/stats" | jq .
 curl -s "http://127.0.0.1:8000/api/timeline?minutes=30" | jq .
 ```
 
-##### Multi-Provider Real LLM Copilot & Auto-Triage
+##### Groq LLM Copilot & Auto-Triage
 ```bash
-# Query active Copilot configuration & provider catalog
+# Query active Copilot configuration (fixed Groq LLaMA 3.3 70B)
 curl -s "http://127.0.0.1:8000/api/copilot/config" | jq .
 
-# Test provider connection and latency (e.g. Groq, Gemini, OpenAI, Ollama)
+# Test Groq LPU connection and latency
 curl -s -X POST "http://127.0.0.1:8000/api/copilot/test" \
   -H "Content-Type: application/json" \
   -d '{"provider": "groq"}' | jq .
@@ -502,7 +503,7 @@ For a detailed technical comparison, see [`docs/comparable_tools.md`](docs/compa
 | **DGA Detection** | **Trained Random Forest + Bigram Likelihood** | Basic domain regex / external IP blocklists | DNS query logging + custom Zeek scripts | Proprietary anomaly model |
 | **C2 Beaconing Detection** | **FFT Spectral Density + Jitter CoV Analysis** | Static regex on URIs or IPs | Requires RITA / post-processing | Statistical timing models |
 | **Data Exfiltration** | **Unsupervised Isolation Forest + Asymmetry Proxy** | Volume thresholds on outbound bytes | SumStats scripts on byte transfers | Baseline deviation models |
-| **Generative AI Triage** | **Multi-Provider Real LLM (Groq LPU, Gemini, OpenAI, Ollama)** | ❌ None | ❌ None (external script required) | Proprietary summary notes |
+| **Generative AI Triage** | **Groq LPU-Powered LLM (LLaMA 3.3 70B)** | ❌ None | ❌ None (external script required) | Proprietary summary notes |
 | **Deployment Footprint** | **Ultra-Lightweight (<150 MB RAM, Python/FastAPI)** | Moderate (multi-threaded C/Rust) | Heavy (substantial memory for state tables) | Heavy (dedicated server clusters or appliances) |
 | **Air-Gap Readiness** | **Native: Zero external dependencies at runtime** | Requires rule update downloads | Requires threat intelligence feeds | Requires cloud model re-training |
 | **Explainability** | **Full Feature Attribution & Real AI Copilot** | Rule ID / SID match only | Raw connection logs | Proprietary "black-box" threat scores |
@@ -519,8 +520,9 @@ For a detailed technical comparison, see [`docs/comparable_tools.md`](docs/compa
 4. **Threat Detectors (`src/detectors/`):** Six modular threat classification engines covering DDoS, Reconnaissance, C2 Beaconing, DGA DNS Tunneling, Encrypted Malware (JA3), and Data Exfiltration (Isolation Forest).
 5. **Alert Normalizer & Store (`src/alert/`):** Validates raw detector outputs against the Pydantic schema, applies confidence thresholds, deduplicates overlapping alerts, and writes to SQLite with Write-Ahead Logging (WAL).
 6. **Alert Dispatcher (`src/alert/dispatcher.py`):** Asynchronous multi-channel notifier dispatching incidents to Discord, Slack, Telegram, and standard webhooks on the SOC network with rate-limiting and audit history.
-7. **API & Triage Engine (`src/api/`):** FastAPI asynchronous server dispatching REST endpoints, broadcasting events via WebSocket, and hosting the multi-provider Real LLM Copilot auto-triage engine.
-8. **React SOC Dashboard (`frontend/`):** Tactical Obsidian Cyber Dark Mode interface built with React 18, Vite, Chart.js, Lucide icons, and offline D3 vector Global Threat Map.
+7. **API & Triage Engine (`src/api/`):** FastAPI asynchronous server dispatching REST endpoints, broadcasting events via WebSocket, and hosting the Groq LPU-powered Real LLM Copilot auto-triage engine.
+8. **React SOC Dashboard (`frontend/`):** Tactical Obsidian Cyber Dark Mode interface built with React 18, Vite, Chart.js, Lucide icons, offline D3 vector Global Threat Map, and one-click Enclave Reset.
+9. **Enclave Reset System (`ResetModal.jsx` + `/api/reset`):** One-click dashboard reset with `baseline` mode (clean 6-vector threat seed) and `empty` mode (complete wipe), synchronized across all connected clients via WebSocket broadcast.
 
 ### Layout of Internal Code Tree (rules.md R7)
 

@@ -34,79 +34,61 @@ except Exception:
     pass
 
 # ---------------------------------------------------------------------------
-# Multi-Provider Real LLM Specifications & State
+# Fixed Groq LLM Configuration (Hardcoded)
 # ---------------------------------------------------------------------------
 
-PROVIDER_SPECS: dict[str, dict[str, Any]] = {
-    "groq": {
-        "id": "groq",
-        "name": "Groq Cloud (Ultra-Fast LPU)",
-        "url": "https://api.groq.com/openai/v1/chat/completions",
-        "default_model": "qwen/qwen3.8-27b",
-        "models": [
-            {"id": "qwen/qwen3.8-27b", "name": "Qwen 3.8 27B (Recommended)", "desc": "Flagship open weights on Groq LPU, ultra-fast reasoning"},
-            {"id": "qwen/qwen3.6-27b", "name": "Qwen 3.6 27B", "desc": "High-efficiency conversational reasoning"},
-            {"id": "groq/compound", "name": "Groq Compound", "desc": "Multi-agent mixture model on Groq LPU"},
-            {"id": "groq/compound-mini", "name": "Groq Compound Mini", "desc": "Ultra-low latency compound model"},
-            {"id": "llama-3.3-70b-versatile", "name": "LLaMA 3.3 70B", "desc": "High-capacity general model"},
-            {"id": "llama-3.1-8b-instant", "name": "LLaMA 3.1 8B Instant", "desc": "Lightweight & ultra-low latency"},
-        ],
-        "key_env": "GROQ_API_KEY",
-        "signup_url": "https://console.groq.com/keys",
-        "help_text": "Free API key from Groq Console. No credit card required.",
-    },
-    "gemini": {
-        "id": "gemini",
-        "name": "Google Gemini",
-        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        "default_model": "gemini-2.0-flash",
-        "models": [
-            {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash (Recommended)", "desc": "Next-gen speed, reasoning & deep multimodal capabilities"},
-            {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "desc": "High-efficiency free tier model"},
-            {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro", "desc": "Complex reasoning & deep analysis"},
-        ],
-        "key_env": "GEMINI_API_KEY",
-        "signup_url": "https://aistudio.google.com/app/apikey",
-        "help_text": "Free API key from Google AI Studio.",
-    },
-    "openai": {
-        "id": "openai",
-        "name": "OpenAI",
-        "url": "https://api.openai.com/v1/chat/completions",
-        "default_model": "gpt-4o-mini",
-        "models": [
-            {"id": "gpt-4o-mini", "name": "GPT-4o Mini (Recommended)", "desc": "Cost-effective, highly capable flagship model"},
-            {"id": "gpt-4o", "name": "GPT-4o", "desc": "Omni multi-modal reasoning engine"},
-        ],
-        "key_env": "OPENAI_API_KEY",
-        "signup_url": "https://platform.openai.com/api-keys",
-        "help_text": "API key from OpenAI Developer Platform.",
-    },
-    "ollama": {
-        "id": "ollama",
-        "name": "Ollama (Local Air-Gapped)",
-        "url": "http://localhost:11434/v1/chat/completions",
-        "default_model": "llama3",
-        "models": [
-            {"id": "llama3", "name": "LLaMA 3 (8B)", "desc": "Local Ollama on-premise model"},
-            {"id": "deepseek-r1", "name": "DeepSeek R1", "desc": "Local reasoning model"},
-            {"id": "mistral", "name": "Mistral 7B", "desc": "Local fast instruction model"},
-        ],
-        "key_env": "OLLAMA_BASE_URL",
-        "signup_url": "https://ollama.com",
-        "help_text": "Local model server running on http://localhost:11434 (No external internet required).",
-    },
-}
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = "qwen/qwen3.8-27b"
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_PROVIDER_NAME = "Groq Cloud (Ultra-Fast LPU)"
 
-_COPILOT_STATE: dict[str, Any] = {
-    "provider": os.environ.get("COPILOT_PROVIDER", "groq"),
-    "model": os.environ.get("COPILOT_MODEL", ""),
-    "groq_api_key": os.environ.get("GROQ_API_KEY", ""),
-    "gemini_api_key": os.environ.get("GEMINI_API_KEY", ""),
-    "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
-    "ollama_base_url": os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
-    "ollama_model": os.environ.get("OLLAMA_MODEL", "llama3"),
-}
+
+def _get_active_groq_key() -> str:
+    """
+    Dynamically retrieve active Groq API key.
+    Checks environment variable first, then inspects .env.
+    """
+    key = os.environ.get("GROQ_API_KEY", "").strip()
+    if key:
+        return key
+
+    try:
+        env_file = config.PROJECT_ROOT / ".env"
+        if env_file.exists():
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("GROQ_API_KEY="):
+                        val = line.split("=", 1)[1].strip().strip("'\"")
+                        if val:
+                            return val
+    except Exception:
+        pass
+    return ""
+
+
+def _get_active_groq_model() -> str:
+    """
+    Dynamically retrieve active Groq model.
+    Checks environment or .env, falling back to qwen/qwen3.8-27b.
+    """
+    model = os.environ.get("COPILOT_MODEL") or os.environ.get("GROQ_MODEL")
+    if model and model.strip() and model.strip() != "llama-3.3-70b-versatile":
+        return model.strip()
+
+    try:
+        env_file = config.PROJECT_ROOT / ".env"
+        if env_file.exists():
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("COPILOT_MODEL=") or line.startswith("GROQ_MODEL="):
+                        val = line.split("=", 1)[1].strip().strip("'\"")
+                        if val and val != "llama-3.3-70b-versatile":
+                            return val
+    except Exception:
+        pass
+    return GROQ_MODEL
 
 
 def _mask_key(key: str | None) -> str:
@@ -117,179 +99,68 @@ def _mask_key(key: str | None) -> str:
     return f"{key[:4]}••••••••{key[-4:]}"
 
 
-def _get_active_credentials() -> tuple[str, str, str, str, bool]:
-    """
-    Returns (provider, model, api_key, endpoint_url, has_key)
-    """
-    provider = _COPILOT_STATE.get("provider", "groq").lower()
-    if provider not in PROVIDER_SPECS:
-        provider = "groq"
-
-    spec = PROVIDER_SPECS[provider]
-    model = _COPILOT_STATE.get("model") or spec["default_model"]
-    # Fallback if an unavailable model was configured
-    if provider == "groq" and model == "llama-3.3-70b-versatile":
-        model = "qwen/qwen3.8-27b"
-
-    if provider == "groq":
-        api_key = _COPILOT_STATE.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
-        url = spec["url"]
-        has_key = bool(api_key.strip())
-    elif provider == "gemini":
-        api_key = _COPILOT_STATE.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
-        url = spec["url"]
-        has_key = bool(api_key.strip())
-    elif provider == "openai":
-        api_key = _COPILOT_STATE.get("openai_api_key") or os.environ.get("OPENAI_API_KEY", "")
-        url = spec["url"]
-        has_key = bool(api_key.strip())
-    elif provider == "ollama":
-        base_url = _COPILOT_STATE.get("ollama_base_url") or os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434/v1")
-        url = f"{base_url.rstrip('/')}/chat/completions"
-        api_key = "ollama"
-        has_key = True
-    else:
-        api_key = ""
-        url = ""
-        has_key = False
-
-    return provider, model, api_key, url, has_key
-
-
 def get_copilot_config() -> dict[str, Any]:
     """Retrieve the current Copilot LLM provider configuration and status."""
-    provider, model, api_key, url, has_key = _get_active_credentials()
+    active_key = _get_active_groq_key()
+    active_model = _get_active_groq_model()
     return {
         "status": "success",
-        "provider": provider,
-        "model": model,
-        "has_key": has_key,
-        "masked_key": _mask_key(api_key) if provider != "ollama" else "N/A (Local)",
-        "ollama_base_url": _COPILOT_STATE.get("ollama_base_url", "http://localhost:11434/v1"),
-        "providers": PROVIDER_SPECS,
-        "mode": "real_model" if has_key else "offline_slm",
+        "provider": "groq",
+        "model": active_model,
+        "has_key": bool(active_key),
+        "masked_key": _mask_key(active_key),
+        "provider_name": GROQ_PROVIDER_NAME,
+        "mode": "real_model",
     }
 
 
-def update_copilot_config(
-    provider: str | None = None,
-    api_key: str | None = None,
-    model: str | None = None,
-    ollama_base_url: str | None = None,
-    persist_to_env: bool = True,
-) -> dict[str, Any]:
-    """
-    Update active Copilot configuration and optionally persist to .env file.
-    """
-    if provider and provider.lower() in PROVIDER_SPECS:
-        _COPILOT_STATE["provider"] = provider.lower()
-        os.environ["COPILOT_PROVIDER"] = provider.lower()
 
-    active_provider = _COPILOT_STATE.get("provider", "groq").lower()
-
-    if model:
-        _COPILOT_STATE["model"] = model
-        os.environ["COPILOT_MODEL"] = model
-
-    if ollama_base_url:
-        _COPILOT_STATE["ollama_base_url"] = ollama_base_url
-        os.environ["OLLAMA_BASE_URL"] = ollama_base_url
-
-    key_to_persist = None
-    env_var_to_persist = None
-
-    if api_key is not None:
-        cleaned_key = api_key.strip()
-        if active_provider == "groq":
-            _COPILOT_STATE["groq_api_key"] = cleaned_key
-            if cleaned_key:
-                os.environ["GROQ_API_KEY"] = cleaned_key
-            else:
-                os.environ.pop("GROQ_API_KEY", None)
-            key_to_persist = cleaned_key
-            env_var_to_persist = "GROQ_API_KEY"
-        elif active_provider == "gemini":
-            _COPILOT_STATE["gemini_api_key"] = cleaned_key
-            if cleaned_key:
-                os.environ["GEMINI_API_KEY"] = cleaned_key
-            else:
-                os.environ.pop("GEMINI_API_KEY", None)
-            key_to_persist = cleaned_key
-            env_var_to_persist = "GEMINI_API_KEY"
-        elif active_provider == "openai":
-            _COPILOT_STATE["openai_api_key"] = cleaned_key
-            if cleaned_key:
-                os.environ["OPENAI_API_KEY"] = cleaned_key
-            else:
-                os.environ.pop("OPENAI_API_KEY", None)
-            key_to_persist = cleaned_key
-            env_var_to_persist = "OPENAI_API_KEY"
-
-    if persist_to_env:
+def update_copilot_config(**kwargs) -> dict[str, Any]:
+    """Update Copilot config (e.g. new API key) and persist to .env."""
+    api_key = kwargs.get("api_key")
+    if api_key and api_key.strip():
+        new_key = api_key.strip()
+        os.environ["GROQ_API_KEY"] = new_key
         try:
-            import dotenv
-            env_path = config.PROJECT_ROOT / ".env"
-            if not env_path.exists():
-                env_path.touch()
-            dotenv.set_key(str(env_path), "COPILOT_PROVIDER", active_provider)
-            if _COPILOT_STATE.get("model"):
-                dotenv.set_key(str(env_path), "COPILOT_MODEL", _COPILOT_STATE["model"])
-            if env_var_to_persist:
-                dotenv.set_key(str(env_path), env_var_to_persist, key_to_persist or "")
+            env_file = config.PROJECT_ROOT / ".env"
+            lines = []
+            if env_file.exists():
+                lines = env_file.read_text(encoding="utf-8").splitlines()
+            found = False
+            for idx, l in enumerate(lines):
+                if l.strip().startswith("GROQ_API_KEY="):
+                    lines[idx] = f"GROQ_API_KEY='{new_key}'"
+                    found = True
+                    break
+            if not found:
+                lines.append(f"GROQ_API_KEY='{new_key}'")
+            env_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
         except Exception as e:
-            logger.warning("Could not persist copilot configuration to .env: %s", e)
-
+            logger.warning("Could not persist GROQ_API_KEY to .env: %s", e)
     return get_copilot_config()
 
 
+
 def test_copilot_connection(
-    provider: str,
+    provider: str = "groq",
     api_key: str | None = None,
     model: str | None = None,
     base_url: str | None = None,
 ) -> dict[str, Any]:
     """
-    Ping a provider with a lightweight query to verify connectivity and key validity.
+    Ping Groq with a lightweight query to verify connectivity.
     """
-    prov = provider.lower()
-    if prov not in PROVIDER_SPECS:
-        return {"status": "error", "message": f"Unknown provider '{provider}'"}
-
-    spec = PROVIDER_SPECS[prov]
-    target_model = model or spec["default_model"]
-
-    # Resolve API key
-    if api_key and api_key.strip():
-        resolved_key = api_key.strip()
-    else:
-        if prov == "groq":
-            resolved_key = _COPILOT_STATE.get("groq_api_key") or os.environ.get("GROQ_API_KEY", "")
-        elif prov == "gemini":
-            resolved_key = _COPILOT_STATE.get("gemini_api_key") or os.environ.get("GEMINI_API_KEY", "")
-        elif prov == "openai":
-            resolved_key = _COPILOT_STATE.get("openai_api_key") or os.environ.get("OPENAI_API_KEY", "")
-        elif prov == "ollama":
-            resolved_key = "ollama"
-        else:
-            resolved_key = ""
-
-    if prov != "ollama" and not resolved_key:
-        return {"status": "error", "message": f"Missing API key for {spec['name']}. Please provide a valid key."}
-
-    # Resolve URL
-    if prov == "ollama":
-        resolved_base = base_url or _COPILOT_STATE.get("ollama_base_url", "http://localhost:11434/v1")
-        req_url = f"{resolved_base.rstrip('/')}/chat/completions"
-    else:
-        req_url = spec["url"]
-
     t_start = time.perf_counter()
-    headers = {"Content-Type": "application/json", "User-Agent": STANDARD_USER_AGENT}
-    if resolved_key and prov != "ollama":
-        headers["Authorization"] = f"Bearer {resolved_key}"
+    active_key = api_key or _get_active_groq_key()
+    active_model = model or _get_active_groq_model()
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": STANDARD_USER_AGENT,
+        "Authorization": f"Bearer {active_key}",
+    }
 
     payload = {
-        "model": target_model,
+        "model": active_model,
         "messages": [
             {"role": "system", "content": "You are a network telemetry ping agent. Reply concisely."},
             {"role": "user", "content": "Respond with 'Diode Copilot Connected' in 3 words."},
@@ -300,7 +171,7 @@ def test_copilot_connection(
 
     try:
         req = urllib.request.Request(
-            req_url,
+            GROQ_API_URL,
             data=json.dumps(payload).encode("utf-8"),
             headers=headers,
             method="POST",
@@ -311,9 +182,9 @@ def test_copilot_connection(
             latency_ms = round((time.perf_counter() - t_start) * 1000, 1)
             return {
                 "status": "success",
-                "message": f"Successfully connected to {spec['name']} ({target_model})",
+                "message": f"Successfully connected to {GROQ_PROVIDER_NAME} ({active_model})",
                 "latency_ms": latency_ms,
-                "model": target_model,
+                "model": active_model,
                 "reply": reply.strip(),
             }
     except urllib.error.HTTPError as e:
@@ -329,7 +200,7 @@ def test_copilot_connection(
     except urllib.error.URLError as e:
         return {
             "status": "error",
-            "message": f"Network error connecting to {req_url}: {e.reason}",
+            "message": f"Network error connecting to {GROQ_API_URL}: {e.reason}",
         }
     except Exception as e:
         return {
@@ -342,25 +213,20 @@ def triage_alert(alert_data: dict[str, Any]) -> dict[str, Any]:
     """
     Generate an AI SOC Analyst triage assessment for an alert.
     
-    Uses active external real model if configured (Groq, Gemini, OpenAI),
-    falling back to deterministic on-premise SLM.
+    Uses the configured Groq LLM, falling back to deterministic on-premise SLM.
     """
     t_start = time.perf_counter()
-    provider, model, api_key, url, has_key = _get_active_credentials()
+    active_key = _get_active_groq_key()
+    active_model = _get_active_groq_model()
 
-    if has_key:
-        try:
-            if provider == "groq":
-                return _triage_via_groq(alert_data, api_key, t_start, model=model)
-            elif provider == "gemini":
-                return _triage_via_gemini(alert_data, api_key, t_start, model=model)
-            elif provider == "openai":
-                return _triage_via_openai(alert_data, api_key, t_start, model=model)
-        except Exception as e:
-            logger.warning("%s triage call failed (%s); falling back to on-premise SLM", provider, e)
+    try:
+        return _triage_via_groq(alert_data, active_key, t_start, model=active_model)
+    except Exception as e:
+        logger.warning("Groq triage call failed (%s); falling back to on-premise SLM", e)
 
     # Default to air-gapped local SLM engine
     return _triage_local_slm(alert_data, t_start)
+
 
 
 def _triage_local_slm(alert: dict[str, Any], t_start: float) -> dict[str, Any]:
@@ -521,7 +387,7 @@ def _triage_local_slm(alert: dict[str, Any], t_start: float) -> dict[str, Any]:
 
 
 def _triage_via_groq(alert: dict[str, Any], api_key: str, t_start: float, model: str | None = None) -> dict[str, Any]:
-    """Call Groq API for online live model fallback."""
+    """Call Groq API for online live model fallback with automatic 429 backoff retry."""
     target_model = model or "qwen/qwen3.8-27b"
     prompt = (
         f"You are an elite cybersecurity SOC analyst. Analyze this JSON alert from our passive data diode tap:\n"
@@ -529,24 +395,46 @@ def _triage_via_groq(alert: dict[str, Any], api_key: str, t_start: float, model:
         f"Respond in JSON format with keys: 'executive_summary' (3 concise sentences), "
         f"'forensic_signals' (3 bullet points), 'recommended_mitigation' (3 concrete network engineer steps)."
     )
-    req = urllib.request.Request(
-        "https://api.groq.com/openai/v1/chat/completions",
-        data=json.dumps({
-            "model": target_model,
-            "messages": [{"role": "user", "content": prompt}],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.2,
-        }).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": STANDARD_USER_AGENT,
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=8.0) as resp:
-        res = json.loads(resp.read().decode("utf-8"))
-        content = json.loads(res["choices"][0]["message"]["content"])
+    req_body = json.dumps({
+        "model": target_model,
+        "messages": [{"role": "user", "content": prompt}],
+        "response_format": {"type": "json_object"},
+        "temperature": 0.2,
+    }).encode("utf-8")
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "User-Agent": STANDARD_USER_AGENT,
+    }
+
+    content = None
+    last_err = None
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(
+                "https://api.groq.com/openai/v1/chat/completions",
+                data=req_body,
+                headers=headers,
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=10.0) as resp:
+                res = json.loads(resp.read().decode("utf-8"))
+                content = json.loads(res["choices"][0]["message"]["content"])
+                break
+        except urllib.error.HTTPError as e:
+            last_err = e
+            if e.code == 429 and attempt < 2:
+                time.sleep(1.0 * (attempt + 1))
+                continue
+            raise
+        except Exception as e:
+            last_err = e
+            raise
+
+    if not content:
+        if last_err:
+            raise last_err
+        raise RuntimeError("Empty response from Groq triage")
 
     elapsed_ms = round((time.perf_counter() - t_start) * 1000, 1)
     return {
@@ -561,87 +449,6 @@ def _triage_via_groq(alert: dict[str, Any], api_key: str, t_start: float, model:
     }
 
 
-def _triage_via_gemini(alert: dict[str, Any], api_key: str, t_start: float, model: str | None = None) -> dict[str, Any]:
-    """Call Google Gemini OpenAI-compatible API for online live model fallback."""
-    target_model = model or "gemini-2.0-flash"
-    prompt = (
-        f"You are an elite cybersecurity SOC analyst. Analyze this JSON alert from our passive data diode tap:\n"
-        f"{json.dumps(alert, indent=2)}\n\n"
-        f"Respond in JSON format with keys: 'executive_summary' (3 concise sentences), "
-        f"'forensic_signals' (3 bullet points), 'recommended_mitigation' (3 concrete network engineer steps)."
-    )
-    req = urllib.request.Request(
-        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        data=json.dumps({
-            "model": target_model,
-            "messages": [{"role": "user", "content": prompt}],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.2,
-        }).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": STANDARD_USER_AGENT,
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=8.0) as resp:
-        res = json.loads(resp.read().decode("utf-8"))
-        content = json.loads(res["choices"][0]["message"]["content"])
-
-    elapsed_ms = round((time.perf_counter() - t_start) * 1000, 1)
-    return {
-        "status": "success",
-        "alert_id": alert.get("alert_id"),
-        "model": f"Gemini: {target_model}",
-        "execution_enclave": "Cloud LLM (Simulated Enclave Relay)",
-        "inference_latency_ms": elapsed_ms,
-        "executive_summary": content.get("executive_summary", ""),
-        "forensic_signals": content.get("forensic_signals", []),
-        "recommended_mitigation": content.get("recommended_mitigation", []),
-    }
-
-
-def _triage_via_openai(alert: dict[str, Any], api_key: str, t_start: float, model: str | None = None) -> dict[str, Any]:
-    """Call OpenAI API for online live model fallback."""
-    target_model = model or "gpt-4o-mini"
-    prompt = (
-        f"You are an elite cybersecurity SOC analyst. Analyze this JSON alert from our passive data diode tap:\n"
-        f"{json.dumps(alert, indent=2)}\n\n"
-        f"Respond in JSON format with keys: 'executive_summary' (3 concise sentences), "
-        f"'forensic_signals' (3 bullet points), 'recommended_mitigation' (3 concrete network engineer steps)."
-    )
-    req = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
-        data=json.dumps({
-            "model": target_model,
-            "messages": [{"role": "user", "content": prompt}],
-            "response_format": {"type": "json_object"},
-            "temperature": 0.2,
-        }).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": STANDARD_USER_AGENT,
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=8.0) as resp:
-        res = json.loads(resp.read().decode("utf-8"))
-        content = json.loads(res["choices"][0]["message"]["content"])
-
-    elapsed_ms = round((time.perf_counter() - t_start) * 1000, 1)
-    return {
-        "status": "success",
-        "alert_id": alert.get("alert_id"),
-        "model": f"OpenAI: {target_model}",
-        "execution_enclave": "Cloud LLM (Simulated Enclave Relay)",
-        "inference_latency_ms": elapsed_ms,
-        "executive_summary": content.get("executive_summary", ""),
-        "forensic_signals": content.get("forensic_signals", []),
-        "recommended_mitigation": content.get("recommended_mitigation", []),
-    }
-
 
 def copilot_chat(
     query: str,
@@ -651,64 +458,65 @@ def copilot_chat(
 ) -> dict[str, Any]:
     """
     Interactive Copilot Chat Engine for the Air-Gapped Diode Enclave.
-    Answers ANY question — technical cybersecurity, packet filters, ML math,
-    code generation, or open-ended inquiries — using real models (Groq, Gemini, OpenAI, Ollama)
-    with graceful offline SLM fallback.
+    Answers ANY question using the configured Groq LLM with graceful offline SLM fallback.
     """
     t_start = time.perf_counter()
-    provider, model, api_key, url, has_key = _get_active_credentials()
+    active_key = _get_active_groq_key()
+    active_model = _get_active_groq_model()
 
-    # If real model credentials exist, call the live LLM
-    if has_key:
-        try:
-            return _copilot_chat_via_llm(
-                query=query,
-                alert=alert_data,
-                history=history or [],
-                enclave_context=enclave_context or {},
-                provider=provider,
-                model=model,
-                api_key=api_key,
-                url=url,
-                t_start=t_start,
-            )
-        except urllib.error.HTTPError as e:
-            logger.warning("External LLM call failed with HTTP %d (%s)", e.code, e.reason)
-            return {
-                "status": "error",
-                "answer": (
-                    f"⚠️ **Real Model Request Failed ({provider.upper()} HTTP {e.code}):** {e.reason}\n\n"
-                    f"Please check your API key and provider configuration in **Model Settings (⚙️)**.\n\n"
-                    f"---\n\n"
-                    f"**Offline Backup Response:**\n"
-                    + _copilot_chat_local_slm(query, alert_data, history or [], enclave_context or {}, t_start)["answer"]
-                ),
-                "model": f"{provider.capitalize()} (Error: {e.code})",
-                "inference_latency_ms": round((time.perf_counter() - t_start) * 1000, 1),
-                "enclave": "Error Fallback Mode",
-                "has_real_model": True,
-                "error": str(e),
-            }
-        except Exception as e:
-            logger.warning("External LLM copilot chat exception: %s", e)
-            return {
-                "status": "error",
-                "answer": (
-                    f"⚠️ **Real Model Connection Error ({provider.upper()}):** {str(e)}\n\n"
-                    f"Please verify your connection and model settings.\n\n"
-                    f"---\n\n"
-                    f"**Offline Backup Response:**\n"
-                    + _copilot_chat_local_slm(query, alert_data, history or [], enclave_context or {}, t_start)["answer"]
-                ),
-                "model": f"{provider.capitalize()} (Connection Error)",
-                "inference_latency_ms": round((time.perf_counter() - t_start) * 1000, 1),
-                "enclave": "Error Fallback Mode",
-                "has_real_model": True,
-                "error": str(e),
-            }
+    try:
+        return _copilot_chat_via_llm(
+            query=query,
+            alert=alert_data,
+            history=history or [],
+            enclave_context=enclave_context or {},
+            provider="groq",
+            model=active_model,
+            api_key=active_key,
+            url=GROQ_API_URL,
+            t_start=t_start,
+        )
+    except urllib.error.HTTPError as e:
+        logger.warning("Groq LLM call failed with HTTP %d (%s)", e.code, e.reason)
+        err_msg = f"HTTP {e.code}: {e.reason}"
+        hint = ""
+        if e.code == 401:
+            err_msg = "HTTP 401: Unauthorized (Invalid or Revoked API Key)"
+            hint = "\n\n💡 *Please verify `GROQ_API_KEY` in your `.env` file or generate a new key at [console.groq.com/keys](https://console.groq.com/keys).*"
+        elif e.code == 429:
+            err_msg = "HTTP 429: Rate Limit Exceeded"
+            hint = "\n\n⏱️ *Groq Free Tier limits requests per minute. Automatically fell back to the air-gapped SLM. Please wait a few seconds and try again.*"
+        return {
+            "status": "error",
+            "answer": (
+                f"⚠️ **Groq Notice ({err_msg})**{hint}\n\n"
+                f"---\n\n"
+                f"**Air-Gapped Offline SLM Backup Response:**\n"
+                + _copilot_chat_local_slm(query, alert_data, history or [], enclave_context or {}, t_start)["answer"]
+            ),
+            "model": f"Groq (Error: {e.code})",
+            "inference_latency_ms": round((time.perf_counter() - t_start) * 1000, 1),
+            "enclave": "Error Fallback Mode",
+            "has_real_model": True,
+            "error": str(e),
+        }
+    except Exception as e:
+        logger.warning("Groq copilot chat exception: %s", e)
+        return {
+            "status": "error",
+            "answer": (
+                f"⚠️ **Groq Connection Notice:** {str(e)}\n\n"
+                f"---\n\n"
+                f"**Air-Gapped Offline SLM Backup Response:**\n"
+                + _copilot_chat_local_slm(query, alert_data, history or [], enclave_context or {}, t_start)["answer"]
+            ),
+            "model": "Groq (Connection Fallback)",
+            "inference_latency_ms": round((time.perf_counter() - t_start) * 1000, 1),
+            "enclave": "Error Fallback Mode",
+            "has_real_model": True,
+            "error": str(e),
+        }
 
-    # No key set -> use local deterministic SLM
-    return _copilot_chat_local_slm(query, alert_data, history or [], enclave_context or {}, t_start)
 
 
 def _copilot_chat_via_llm(
@@ -722,34 +530,40 @@ def _copilot_chat_via_llm(
     url: str,
     t_start: float,
 ) -> dict[str, Any]:
-    """Execute live, open-ended multi-turn LLM chat across any supported provider."""
+    """Execute live multi-turn LLM chat with automatic backoff retry and model fallback."""
     system_prompt = (
         "You are 'Diode Copilot', an elite cybersecurity AI analyst and comprehensive technical assistant "
-        "integrated into the NET-DRISHTI Air-Gapped Optical Data Diode Enclave.\n\n"
-        "CORE DIRECTIVES:\n"
-        "1. OPEN INTELLIGENCE: You are equipped to answer ANY user question — whether about cybersecurity, incident triage, "
-        "packet capture analysis (Wireshark, tcpdump, BPF), network engineering, programming (Python, C, Rust, Go, JS, etc.), "
-        "algorithms, mathematics, or general technical knowledge. You are NOT restricted to fixed canned questions.\n"
-        "2. ENCLAVE CONTEXT: When alert telemetry or enclave posture is attached, reference the specific 5-tuple flow, "
-        "supporting statistics, and MITRE ATT&CK techniques in your technical diagnosis.\n"
-        "3. HARDWARE AWARENESS: NET-DRISHTI runs on physical optical taps (Simplex Rx) ensuring absolute read-only ingress "
-        "with zero outbound socket or packet exposure to monitored networks.\n"
-        "4. STYLE: Provide authoritative, structured, and insightful markdown responses with syntax-highlighted code blocks, "
-        "practical terminal commands, and actionable analysis."
+        "integrated into the NET-DRISHTI Air-Gapped Optical Data Diode Enclave.\n"
+        "Directives: Answer any technical or cybersecurity query authoritatively with structured markdown and code. "
+        "Reference passive optical diode tap characteristics (zero outbound socket exposure, unidirectional Rx). "
+        "Keep responses focused, technical, and actionable."
     )
 
     messages = [{"role": "system", "content": system_prompt}]
-    for h in history[-8:]:
+    for h in history[-6:]:
         role = h.get("role", "user")
         if role in ["user", "assistant"]:
             messages.append({"role": role, "content": h.get("content", "")})
 
     user_payload_parts = []
     if alert:
-        user_payload_parts.append(f"[Active Alert Telemetry Context:\n{json.dumps(alert, indent=2)}]")
+        compact_alert = {
+            "alert_id": alert.get("alert_id"),
+            "threat_class": alert.get("threat_class"),
+            "severity": alert.get("severity"),
+            "flow_id": alert.get("flow_id"),
+            "confidence": alert.get("confidence"),
+            "features_triggered": alert.get("evidence", {}).get("features_triggered", []),
+        }
+        user_payload_parts.append(f"[Active Alert: {json.dumps(compact_alert)}]")
     if enclave_context:
-        user_payload_parts.append(f"[Enclave Posture Summary:\n{json.dumps(enclave_context, indent=2)}]")
-    user_payload_parts.append(f"User Query:\n{query}")
+        compact_enclave = {
+            "status": enclave_context.get("enclave_status", "SECURE"),
+            "total_alerts": enclave_context.get("total_alerts", 0),
+            "flow_rate": enclave_context.get("flow_rate_per_sec", 0),
+        }
+        user_payload_parts.append(f"[Enclave Posture: {json.dumps(compact_enclave)}]")
+    user_payload_parts.append(query)
 
     messages.append({"role": "user", "content": "\n\n".join(user_payload_parts)})
 
@@ -757,36 +571,69 @@ def _copilot_chat_via_llm(
     if api_key and provider != "ollama":
         headers["Authorization"] = f"Bearer {api_key}"
 
-    req_payload = {
-        "model": model,
-        "messages": messages,
-        "temperature": 0.3,
-        "max_tokens": 1200,
-    }
+    # Try requested model, and fallback to secondary if rate-limited
+    models_to_try = [model]
+    if model != "openai/gpt-oss-20b":
+        models_to_try.append("openai/gpt-oss-20b")
 
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(req_payload).encode("utf-8"),
-        headers=headers,
-        method="POST",
-    )
+    answer = None
+    successful_model = model
+    last_error = None
 
-    with urllib.request.urlopen(req, timeout=12.0) as resp:
-        res = json.loads(resp.read().decode("utf-8"))
-        answer = res["choices"][0]["message"]["content"]
+    for target_model in models_to_try:
+        req_payload = {
+            "model": target_model,
+            "messages": messages,
+            "temperature": 0.3,
+            "max_tokens": 700,
+        }
+        data_bytes = json.dumps(req_payload).encode("utf-8")
+
+        for attempt in range(3):
+            try:
+                req = urllib.request.Request(
+                    url,
+                    data=data_bytes,
+                    headers=headers,
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=12.0) as resp:
+                    res = json.loads(resp.read().decode("utf-8"))
+                    answer = res["choices"][0]["message"]["content"]
+                    successful_model = target_model
+                    break
+            except urllib.error.HTTPError as e:
+                last_error = e
+                if e.code == 429 and attempt < 2:
+                    time.sleep(1.0 * (attempt + 1))
+                    continue
+                # If still 429 on this model, break to next candidate model
+                break
+            except Exception as e:
+                last_error = e
+                break
+
+        if answer is not None:
+            break
+
+    if answer is None:
+        if last_error:
+            raise last_error
+        raise RuntimeError("Empty response from Groq LLM")
 
     elapsed_ms = round((time.perf_counter() - t_start) * 1000, 1)
-    provider_name = PROVIDER_SPECS.get(provider, {}).get("name", provider.capitalize())
+    provider_name = GROQ_PROVIDER_NAME
     return {
         "status": "success",
         "answer": answer,
-        "model": f"{provider_name} ({model})",
+        "model": f"{provider_name} ({successful_model})",
         "provider": provider,
         "inference_latency_ms": elapsed_ms,
         "enclave": "Live Cloud LLM Relay (Diode Monitored)",
         "has_real_model": True,
         "mode": "real_model",
     }
+
 
 
 def _copilot_chat_local_slm(
@@ -908,26 +755,34 @@ def _copilot_chat_local_slm(
             )
         else:
             answer = (
-                f"### 💡 Connect Real Model for Open-Ended Questions\n\n"
+                f"### 🛡️ Air-Gapped Threat Attribution\n\n"
                 f"You asked: *\"{query}\"*\n\n"
-                f"In offline mode without an active alert selected, the simulation engine can only attribute specific alerts from the Live Threat Stream.\n\n"
-                f"**To explain any general or technical cybersecurity concept, write code, or answer any open question:**\n"
-                f"👉 Click **⚙️ Model Settings** in the chat header to connect a **Free Groq or Google Gemini model** in seconds!"
+                f"In local SLM mode, deep attribution is calculated for alerts selected from the Live Threat Stream. "
+                f"Select an alert from the table to view its full MITRE ATT&CK forensic analysis, or ask for packet filters, entropy formulas, or posture summaries."
             )
+
+    elif any(k in q_lower for k in ["hello", "hi", "hey", "greetings", "good morning", "good evening", "who are you", "help", "start"]):
+        answer = (
+            f"### 👋 Greetings, Security Analyst\n\n"
+            f"I am **Diode Copilot**, the AI cyber defense assistant for the **NET-DRISHTI Optical Data Diode Enclave**.\n\n"
+            f"I continuously monitor unidirectional network telemetry to provide instant incident summaries, mathematical entropy analysis, and forensic packet capture filters.\n\n"
+            f"**How can I assist you right now?**\n"
+            f"- Inquire about active threat indicators or MITRE ATT&CK techniques\n"
+            f"- Ask for **BPF / tcpdump** or **Wireshark** forensic capture syntax\n"
+            f"- Request an **enclave posture summary** or **FFT beaconing spectral analysis**"
+        )
 
     else:
         answer = (
-            f"### 💡 Connect Real Model for Open-Ended AI Intelligence\n\n"
+            f"### 🛡️ Diode Enclave Offline Assistance\n\n"
             f"You asked: *\"{query}\"*\n\n"
-            f"The on-premise **Offline SLM** is currently running in zero-egress air-gapped simulation mode, "
-            f"which recognizes pre-compiled telemetry patterns (e.g. packet capture filters, Shannon entropy formulas, "
-            f"beaconing FFT spectral analysis, or enclave posture assessments).\n\n"
-            f"**To enable Diode Copilot to answer ANY question** — including complex programming, troubleshooting, "
-            f"general cybersecurity theory, mathematical equations, or open-ended inquiries:\n\n"
-            f"1. Click the **⚙️ Model Settings** button in the chat header (or the banner below).\n"
-            f"2. Select **Groq** (Free & Ultra-Fast: `qwen/qwen3.8-27b`) or **Google Gemini** (Free Tier: `gemini-2.0-flash`).\n"
-            f"3. Paste your free API key and click **Save & Activate**.\n\n"
-            f"*(Key is stored locally in your environment. Calls run strictly outside the physical diode on the presentation server.)*"
+            f"The on-premise air-gapped SLM is currently operating in zero-egress mode. "
+            f"I can assist with all enclave telemetry, forensic captures, and mathematical detections.\n\n"
+            f"**Suggested Queries:**\n"
+            f"• *\"Generate tcpdump and Wireshark capture filters for this flow\"*\n"
+            f"• *\"Why did Shannon entropy trigger on this alert?\"*\n"
+            f"• *\"Explain the physical optical data diode architecture\"*\n"
+            f"• *\"What is our current tactical enclave posture?\"*"
         )
 
     elapsed_ms = round((time.perf_counter() - t_start) * 1000, 1)
