@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   X, Bot, Sparkles, ShieldAlert, Terminal, Copy, Check, ExternalLink,
   Cpu, Lock, ArrowRight, Activity, AlertTriangle, Send, MessageSquare,
-  FileText, Download, RefreshCw, Zap, CornerDownLeft
+  FileText, Download, RefreshCw, Zap, CornerDownLeft, Settings, Key,
+  Eye, EyeOff, CheckCircle2, AlertCircle, CheckCircle
 } from 'lucide-react';
 import { getApiUrl } from '../api';
 
@@ -13,11 +14,44 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [copiedAll, setCopiedAll] = useState(false);
 
+  // Real LLM Provider Configuration State
+  const [copilotConfig, setCopilotConfig] = useState({
+    provider: 'groq',
+    model: 'qwen/qwen3.8-27b',
+    has_key: false,
+    masked_key: '',
+    providers: {},
+    mode: 'offline_slm',
+  });
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('groq');
+  const [selectedModel, setSelectedModel] = useState('qwen/qwen3.8-27b');
+  const [apiKeyInput, setApiKeyInput] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434/v1');
+  const [testState, setTestState] = useState({ loading: false, result: null, error: null });
+  const [saveState, setSaveState] = useState({ loading: false, success: false });
+
   // Chat State
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef(null);
+
+  const fetchCopilotConfig = async () => {
+    try {
+      const res = await fetch(getApiUrl('/api/copilot/config'));
+      const data = await res.json();
+      if (data.status === 'success') {
+        setCopilotConfig(data);
+        setSelectedProvider(data.provider || 'groq');
+        setSelectedModel(data.model || 'qwen/qwen3.8-27b');
+        if (data.ollama_base_url) setOllamaUrl(data.ollama_base_url);
+      }
+    } catch (err) {
+      console.warn('Failed to load copilot config:', err);
+    }
+  };
 
   // Reset or initialize on open
   useEffect(() => {
@@ -38,6 +72,8 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
         timestamp: new Date().toLocaleTimeString(),
       }
     ]);
+
+    fetchCopilotConfig();
 
     fetch(getApiUrl('/api/triage'), {
       method: 'POST',
@@ -67,6 +103,71 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatMessages, activeTab]);
+
+  const handleSelectProvider = (provKey) => {
+    setSelectedProvider(provKey);
+    const spec = copilotConfig.providers?.[provKey];
+    if (spec && spec.default_model) {
+      setSelectedModel(spec.default_model);
+    }
+    setTestState({ loading: false, result: null, error: null });
+    setSaveState({ loading: false, success: false });
+  };
+
+  const handleTestConnection = async () => {
+    setTestState({ loading: true, result: null, error: null });
+    try {
+      const res = await fetch(getApiUrl('/api/copilot/test'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: selectedProvider,
+          api_key: apiKeyInput.trim() || undefined,
+          model: selectedModel,
+          ollama_base_url: selectedProvider === 'ollama' ? ollamaUrl.trim() : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setTestState({ loading: false, result: data, error: null });
+      } else {
+        setTestState({ loading: false, result: null, error: data.message || 'Connection test failed' });
+      }
+    } catch (err) {
+      setTestState({ loading: false, result: null, error: err.message || 'Network error testing connection' });
+    }
+  };
+
+  const handleSaveConfig = async () => {
+    setSaveState({ loading: true, success: false });
+    try {
+      const res = await fetch(getApiUrl('/api/copilot/config'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider: selectedProvider,
+          api_key: apiKeyInput.trim() || undefined,
+          model: selectedModel,
+          ollama_base_url: selectedProvider === 'ollama' ? ollamaUrl.trim() : undefined,
+          persist_to_env: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setCopilotConfig(data);
+        setSaveState({ loading: false, success: true });
+        setTimeout(() => {
+          setShowSettingsModal(false);
+          setSaveState({ loading: false, success: false });
+        }, 800);
+      } else {
+        throw new Error('Failed to save configuration');
+      }
+    } catch (err) {
+      setSaveState({ loading: false, success: false });
+      alert('Error saving configuration: ' + err.message);
+    }
+  };
 
   if (!isOpen || !alert) return null;
 
@@ -158,7 +259,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
       });
 
       const data = await res.json();
-      if (data.status === 'success' && data.answer) {
+      if ((data.status === 'success' || data.status === 'error') && data.answer) {
         setChatMessages((prev) => [
           ...prev,
           {
@@ -166,11 +267,13 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
             content: data.answer,
             model: data.model,
             latency: data.inference_latency_ms,
+            has_real_model: data.has_real_model,
+            mode: data.mode,
             timestamp: new Date().toLocaleTimeString(),
           },
         ]);
       } else {
-        throw new Error('Invalid response from copilot');
+        throw new Error(data.message || 'Invalid response from copilot');
       }
     } catch (err) {
       console.error('Chat error:', err);
@@ -370,23 +473,77 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
             </button>
           </div>
 
-          {/* Inference Latency Indicator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>Inference:</span>
-            <span style={{
-              background: 'rgba(37, 99, 235, 0.15)',
-              color: 'var(--accent-blue)',
-              padding: '2px 8px',
-              borderRadius: '4px',
-              fontWeight: '700',
-              border: '1px solid rgba(37, 99, 235, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}>
-              <Activity size={11} />
-              {triageData?.inference_latency_ms || 24} ms
-            </span>
+          {/* Real Model Status & Settings Trigger */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            {copilotConfig.has_key ? (
+              <button
+                onClick={() => setShowSettingsModal(true)}
+                title="Active Live Model — Click to configure"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '3px 10px',
+                  borderRadius: '6px',
+                  background: 'rgba(16, 185, 129, 0.12)',
+                  color: '#10B981',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-mono)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <Zap size={11} color="#10B981" />
+                <span>{copilotConfig.provider?.toUpperCase()}: {copilotConfig.model}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowSettingsModal(true)}
+                title="Click to connect a real model (Groq, Gemini, OpenAI)"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '3px 10px',
+                  borderRadius: '6px',
+                  background: 'rgba(234, 179, 8, 0.12)',
+                  color: '#EAB308',
+                  border: '1px solid rgba(234, 179, 8, 0.3)',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-mono)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <Sparkles size={11} color="#EAB308" />
+                <span>Offline SLM (Connect Real LLM)</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowSettingsModal(true)}
+              title="Configure AI Models & Keys"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-subtle)',
+                fontSize: '11px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              <Settings size={12} />
+              <span>Model Settings</span>
+            </button>
           </div>
         </div>
 
@@ -716,6 +873,50 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
               ))}
             </div>
 
+            {/* Offline SLM Notice Banner (if no live key set) */}
+            {!copilotConfig.has_key && (
+              <div style={{
+                margin: '12px 20px 0',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(79, 70, 229, 0.08))',
+                border: '1px solid rgba(37, 99, 235, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Sparkles size={18} color="#38BDF8" style={{ flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: '12px', fontWeight: '800', color: 'var(--text-primary)' }}>
+                      Enable Real AI Model (Groq / Gemini / OpenAI)
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                      Answer ANY question beyond fixed keywords. Paste a free key in 10 seconds.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSettingsModal(true)}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '6px',
+                    background: '#2563EB',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(37, 99, 235, 0.3)',
+                  }}
+                >
+                  Connect Model
+                </button>
+              </div>
+            )}
+
             {/* Chat Message Stream */}
             <div style={{
               flex: 1,
@@ -746,9 +947,15 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                       color: 'var(--text-secondary)',
                       fontWeight: '700',
                     }}>
-                      <span>{isUser ? 'ANALYST' : 'DIODE COPILOT (SLM)'}</span>
+                      <span>{isUser ? 'ANALYST' : (msg.model ? msg.model.toUpperCase() : (copilotConfig.has_key ? `${copilotConfig.provider.toUpperCase()} (${copilotConfig.model})` : 'DIODE COPILOT (SLM)'))}</span>
                       <span>•</span>
                       <span>{msg.timestamp}</span>
+                      {!isUser && msg.latency && (
+                        <>
+                          <span>•</span>
+                          <span style={{ color: 'var(--accent-blue)' }}>{msg.latency} ms</span>
+                        </>
+                      )}
                     </div>
 
                     <div style={{
@@ -768,6 +975,32 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                           __html: renderMarkdownSimple(msg.content, isUser)
                         }}
                       />
+
+                      {/* Prompt button to connect real model if triggered offline notice */}
+                      {!isUser && msg.has_real_model === false && msg.content?.includes('Connect Real Model') && (
+                        <div style={{ marginTop: '12px', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                          <button
+                            onClick={() => setShowSettingsModal(true)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '6px 14px',
+                              borderRadius: '6px',
+                              background: '#2563EB',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              fontSize: '11px',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 6px rgba(37, 99, 235, 0.3)',
+                            }}
+                          >
+                            <Settings size={13} />
+                            <span>Open Model Settings & Add Free API Key</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -776,7 +1009,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
               {chatLoading && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '12px', padding: '10px' }}>
                   <Sparkles size={14} className="pulse" color="#2563EB" />
-                  <span>On-premise SLM evaluating telemetry...</span>
+                  <span>{copilotConfig.has_key ? `${copilotConfig.provider.toUpperCase()} evaluating telemetry...` : 'On-premise SLM evaluating telemetry...'}</span>
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -808,7 +1041,7 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Ask Diode Copilot (e.g. explain entropy, generate Wireshark filter)..."
+                  placeholder={copilotConfig.has_key ? `Ask Diode Copilot (${copilotConfig.provider.toUpperCase()}) anything...` : "Ask Diode Copilot (e.g. explain entropy, generate Wireshark filter)..."}
                   disabled={chatLoading}
                   style={{
                     flex: 1,
@@ -843,6 +1076,414 @@ export default function AITriageDrawer({ alert, isOpen, onClose }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '10px', color: 'var(--text-muted)' }}>
                 <span>Physical Unidirectional Optical Tap • Simplex Rx • Zero Socket Outbound</span>
                 <span>Press Enter to Submit</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODEL SETTINGS MODAL */}
+        {showSettingsModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(8px)',
+              zIndex: 200,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => setShowSettingsModal(false)}
+          >
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '540px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '16px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div style={{
+                padding: '18px 24px',
+                borderBottom: '1px solid var(--border-subtle)',
+                background: 'var(--bg-surface)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #2563EB, #4F46E5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Bot size={20} color="#FFFFFF" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
+                      COPILOT MODEL CONFIGURATION
+                    </h3>
+                    <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '2px 0 0' }}>
+                      Connect a real AI model to answer ANY question beyond fixed patterns
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSettingsModal(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    padding: '6px',
+                    borderRadius: '6px',
+                  }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Provider Selector Tabs */}
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Select AI Provider
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginTop: '6px' }}>
+                    {[
+                      { id: 'groq', name: 'Groq', badge: 'Free / Fast' },
+                      { id: 'gemini', name: 'Gemini', badge: 'Free Tier' },
+                      { id: 'openai', name: 'OpenAI', badge: 'GPT-4o' },
+                      { id: 'ollama', name: 'Ollama', badge: 'Local' },
+                    ].map((p) => {
+                      const isSel = selectedProvider === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => handleSelectProvider(p.id)}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '2px',
+                            padding: '10px 6px',
+                            borderRadius: '10px',
+                            border: isSel ? '2px solid var(--accent-blue)' : '1px solid var(--border-subtle)',
+                            background: isSel ? 'rgba(37, 99, 235, 0.1)' : 'var(--bg-surface)',
+                            color: isSel ? 'var(--text-primary)' : 'var(--text-secondary)',
+                            fontWeight: isSel ? '800' : '600',
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          <span>{p.name}</span>
+                          <span style={{
+                            fontSize: '9px',
+                            color: isSel ? 'var(--accent-blue)' : 'var(--text-muted)',
+                            fontWeight: '700',
+                          }}>
+                            {p.badge}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Provider Info & Direct Key Link */}
+                {selectedProvider === 'groq' && (
+                  <div style={{
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(37, 99, 235, 0.08)',
+                    border: '1px solid rgba(37, 99, 235, 0.2)',
+                    fontSize: '11px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                      ⚡ <strong>Groq Cloud</strong> provides ultra-fast (~400 t/s) free inference on LLaMA 3.3.
+                    </span>
+                    <a
+                      href="https://console.groq.com/keys"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: '#38BDF8',
+                        fontWeight: '700',
+                        textDecoration: 'none',
+                        flexShrink: 0,
+                        marginLeft: '8px',
+                      }}
+                    >
+                      <span>Get Free Key</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                )}
+
+                {selectedProvider === 'gemini' && (
+                  <div style={{
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    background: 'rgba(16, 185, 129, 0.08)',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                    fontSize: '11px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>
+                      ✨ <strong>Google Gemini</strong> offers a generous free tier on Gemini 2.0 Flash.
+                    </span>
+                    <a
+                      href="https://aistudio.google.com/app/apikey"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: '#10B981',
+                        fontWeight: '700',
+                        textDecoration: 'none',
+                        flexShrink: 0,
+                        marginLeft: '8px',
+                      }}
+                    >
+                      <span>Get Free Key</span>
+                      <ExternalLink size={12} />
+                    </a>
+                  </div>
+                )}
+
+                {/* Model Selector */}
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Model Version
+                  </label>
+                  <select
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    style={{
+                      width: '100%',
+                      marginTop: '6px',
+                      padding: '9px 12px',
+                      background: 'var(--bg-surface)',
+                      color: 'var(--text-primary)',
+                      border: '1px solid var(--border-input)',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      outline: 'none',
+                    }}
+                  >
+                    {(copilotConfig.providers?.[selectedProvider]?.models || [
+                      { id: selectedModel, name: selectedModel }
+                    ]).map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name || m.id} {m.desc ? `— ${m.desc}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* API Key Input */}
+                {selectedProvider !== 'ollama' ? (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        API Key
+                      </label>
+                      {copilotConfig.has_key && copilotConfig.provider === selectedProvider && (
+                        <span style={{ fontSize: '10px', color: '#10B981', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                          <Check size={11} />
+                          Active ({copilotConfig.masked_key})
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={showApiKey ? 'text' : 'password'}
+                        value={apiKeyInput}
+                        onChange={(e) => setApiKeyInput(e.target.value)}
+                        placeholder={copilotConfig.has_key && copilotConfig.provider === selectedProvider ? 'Leave empty to keep current active key' : `Paste your ${selectedProvider.toUpperCase()} key`}
+                        style={{
+                          width: '100%',
+                          padding: '9px 40px 9px 12px',
+                          background: 'var(--bg-surface)',
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--border-input)',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKey(!showApiKey)}
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          padding: '4px',
+                        }}
+                      >
+                        {showApiKey ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Ollama Endpoint URL
+                    </label>
+                    <input
+                      type="text"
+                      value={ollamaUrl}
+                      onChange={(e) => setOllamaUrl(e.target.value)}
+                      placeholder="http://localhost:11434/v1"
+                      style={{
+                        width: '100%',
+                        marginTop: '6px',
+                        padding: '9px 12px',
+                        background: 'var(--bg-surface)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-input)',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Feedback Alerts */}
+                {testState.loading && (
+                  <div style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent-blue)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <RefreshCw size={13} className="spin" />
+                    <span>Pinging {selectedProvider.toUpperCase()} model {selectedModel}...</span>
+                  </div>
+                )}
+                {testState.result && (
+                  <div style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10B981', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CheckCircle2 size={14} />
+                    <span>Connected! Latency: {testState.result.latency_ms} ms — Model: {testState.result.model}</span>
+                  </div>
+                )}
+                {testState.error && (
+                  <div style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#EF4444', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <AlertCircle size={14} />
+                    <span>{testState.error}</span>
+                  </div>
+                )}
+                {saveState.success && (
+                  <div style={{ padding: '8px 12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', fontSize: '11px', fontWeight: '700' }}>
+                    ✅ Configuration saved & active! Ready for open-ended chat.
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{
+                padding: '14px 24px',
+                borderTop: '1px solid var(--border-subtle)',
+                background: 'var(--bg-surface)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={testState.loading || (selectedProvider !== 'ollama' && !apiKeyInput && !copilotConfig.has_key)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-secondary)',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Activity size={13} />
+                  <span>Test Connection</span>
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowSettingsModal(false)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: 'transparent',
+                      color: 'var(--text-secondary)',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveConfig}
+                    disabled={saveState.loading}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: 'var(--accent-blue)',
+                      color: '#FFFFFF',
+                      fontSize: '12px',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+                    }}
+                  >
+                    {saveState.loading ? <RefreshCw size={13} className="spin" /> : <Check size={13} />}
+                    <span>Save & Activate</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

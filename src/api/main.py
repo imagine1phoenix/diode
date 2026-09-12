@@ -256,6 +256,53 @@ async def triage_endpoint(alert: dict[str, Any]) -> dict[str, Any]:
     return triage_alert(alert)
 
 
+class CopilotConfigUpdateRequest(BaseModel):
+    provider: str | None = None
+    api_key: str | None = None
+    model: str | None = None
+    ollama_base_url: str | None = None
+    persist_to_env: bool = True
+
+
+class CopilotTestRequest(BaseModel):
+    provider: str
+    api_key: str | None = None
+    model: str | None = None
+    ollama_base_url: str | None = None
+
+
+@app.get("/api/copilot/config")
+async def get_copilot_config_endpoint() -> dict[str, Any]:
+    """Get active Copilot LLM provider, models, and credential status."""
+    from src.api.triage import get_copilot_config
+    return get_copilot_config()
+
+
+@app.post("/api/copilot/config")
+async def update_copilot_config_endpoint(req: CopilotConfigUpdateRequest) -> dict[str, Any]:
+    """Update active Copilot provider, key, model, and persist to .env."""
+    from src.api.triage import update_copilot_config
+    return update_copilot_config(
+        provider=req.provider,
+        api_key=req.api_key,
+        model=req.model,
+        ollama_base_url=req.ollama_base_url,
+        persist_to_env=req.persist_to_env,
+    )
+
+
+@app.post("/api/copilot/test")
+async def test_copilot_endpoint(req: CopilotTestRequest) -> dict[str, Any]:
+    """Test connection to an AI provider with live model roundtrip."""
+    from src.api.triage import test_copilot_connection
+    return test_copilot_connection(
+        provider=req.provider,
+        api_key=req.api_key,
+        model=req.model,
+        base_url=req.ollama_base_url,
+    )
+
+
 class CopilotChatRequest(BaseModel):
     query: str
     alert: dict[str, Any] | None = None
